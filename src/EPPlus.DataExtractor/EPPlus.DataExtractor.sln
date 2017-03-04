@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPPlus.DataExtractor", "EPPlus.DataExtractor.csproj", "{C7B00BC9-8D05-4CAB-B812-2AF514866874}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPPlus.DataExtractor.Tests", "..\EPPlus.DataExtractor.Tests\EPPlus.DataExtractor.Tests.csproj", "{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C7B00BC9-8D05-4CAB-B812-2AF514866874}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7B00BC9-8D05-4CAB-B812-2AF514866874}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7B00BC9-8D05-4CAB-B812-2AF514866874}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7B00BC9-8D05-4CAB-B812-2AF514866874}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

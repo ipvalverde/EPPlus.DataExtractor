@@ -6,27 +6,23 @@ using System.Text.RegularExpressions;
 
 namespace EPPlus.DataExtractor
 {
-    internal abstract class BaseColumnDataExtractor<TRow>
+    internal class CollectionColumnDataExtractor<TRow, TValue> : BaseColumnDataExtractor<TRow>
     {
-        public abstract void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange);
-    }
+        private readonly string initialColumn;
+        private readonly string finalColumn;
 
-    internal class ColumnDataExtractor<TRow, TValue> : BaseColumnDataExtractor<TRow>
-        where TRow : class, new()
-    {
-        private readonly Action<TRow, TValue> setPropertyValueAction;
-        private readonly string column;
-
-        public ColumnDataExtractor(string column, Action<TRow, TValue> setPropertyValueAction)
+        public CollectionColumnDataExtractor(string initialColumn, string finalColumn)
         {
-            this.setPropertyValueAction = setPropertyValueAction;
-            this.column = column;
+            this.initialColumn = initialColumn;
+            this.finalColumn = finalColumn;
         }
 
         public override void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange)
         {
-            var value = cellRange[column + row].GetValue<TValue>();
-            setPropertyValueAction(dataInstance, value);
+            foreach(var cell in cellRange[initialColumn + row + ":" + finalColumn + row])
+            {
+
+            }
         }
     }
 
@@ -81,14 +77,23 @@ namespace EPPlus.DataExtractor
         /// <returns>Returns an <see cref="IEnumerable{T}"/> with the data of the columns.</returns>
         public IEnumerable<TRow> GetData(int fromRow, int toRow)
         {
-            for(int row = fromRow; row <= toRow; row++)
+            string initialColumn = "H";
+            string finalColumn = "R";
+
+            for (int row = fromRow; row <= toRow; row++)
             {
-                var dataInstance = new TRow();
+                //foreach (var column in this.worksheet.Cells[initialColumn+row+":"+finalColumn+row])
+                {
+                    var dataInstance = new TRow();
 
-                foreach(var propertySetter in this.propertySetters)
-                    propertySetter.SetPropertyValue(dataInstance, row, this.worksheet.Cells);
+                    foreach (var propertySetter in this.propertySetters)
+                        propertySetter.SetPropertyValue(dataInstance, row, this.worksheet.Cells);
 
-                yield return dataInstance;
+                    //foreach(var collectionPropertySetter in this.collectionPropertySetters)
+                    //    collectionPropertySetter.SetPropertyValue(dataInstance, row, this.worksheet.Cells);
+
+                    yield return dataInstance;
+                }
             }
         }
     }

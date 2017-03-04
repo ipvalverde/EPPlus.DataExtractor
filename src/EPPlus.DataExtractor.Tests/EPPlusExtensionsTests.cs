@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OfficeOpenXml;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace EPPlus.DataExtractor.Tests
 {
@@ -24,6 +25,11 @@ namespace EPPlus.DataExtractor.Tests
 
             public int Age { get; set; }
 
+            public List<ColumnData> MoneyData { get; set; }
+        }
+
+        public class ColumnData
+        {
             public double ReceivedMoney { get; set; }
 
             public DateTime Date { get; set; }
@@ -65,6 +71,24 @@ namespace EPPlus.DataExtractor.Tests
 
                 Assert.IsTrue(cars.Any(i =>
                     i.CarName == "Etios" && i.Value == 17575 && i.CreationDate == new DateTime(2015, 07, 21)));
+            }
+        }
+
+        [TestMethod]
+        public void ExtractDataTransformingColumnsIntoRows()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var data = package.Workbook.Worksheets["MainWorksheet"]
+                    .Extract<RowDataWithColumnBeingRow>()
+                    .WithProperty(p => p.Name, "F")
+                    .WithProperty(p => p.Age, "G")
+                    //.WithProperty(p => p.CreationDate, "D")
+                    .GetData(2, 4)
+                    .ToList();
+
+                Assert.AreEqual(3, data.Count);
             }
         }
     }

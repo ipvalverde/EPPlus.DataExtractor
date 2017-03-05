@@ -4,9 +4,9 @@ This is a simple EPPlus extension that make easier to extract POCO from spreadsh
 ## Installation
 You can download the library from nuget with the following command:
 
-´´´
+```
 Install-Package EPPlus.DataExtractor
-´´´
+```
 
 If you don´t have the EPPlus as a dependency, nuget will install it for you.
 

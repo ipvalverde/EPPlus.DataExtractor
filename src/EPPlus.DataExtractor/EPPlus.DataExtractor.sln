@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPPlus.DataExtractor", "EPP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPPlus.DataExtractor.Tests", "..\EPPlus.DataExtractor.Tests\EPPlus.DataExtractor.Tests.csproj", "{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}"
 EndProject
+Project("{FF286327-C783-4F7A-AB73-9BCBAD0D4460}") = "EPPlus.DataExtractor.Package", "..\EPPlus.DataExtractor.Package\EPPlus.DataExtractor.Package.nuproj", "{5C4ADE11-E2C2-45AA-A34A-4EA200A4546A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C4ADE11-E2C2-45AA-A34A-4EA200A4546A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C4ADE11-E2C2-45AA-A34A-4EA200A4546A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C4ADE11-E2C2-45AA-A34A-4EA200A4546A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C4ADE11-E2C2-45AA-A34A-4EA200A4546A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

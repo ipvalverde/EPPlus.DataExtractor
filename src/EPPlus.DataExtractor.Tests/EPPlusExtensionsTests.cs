@@ -84,11 +84,24 @@ namespace EPPlus.DataExtractor.Tests
                     .Extract<RowDataWithColumnBeingRow>()
                     .WithProperty(p => p.Name, "F")
                     .WithProperty(p => p.Age, "G")
-                    //.WithProperty(p => p.CreationDate, "D")
+                    .WithCollectionProperty(p => p.MoneyData,
+                        item => item.Date, 1,
+                        item => item.ReceivedMoney, "H", "S")
                     .GetData(2, 4)
                     .ToList();
 
                 Assert.AreEqual(3, data.Count);
+
+                Assert.IsTrue(data.All(i => i.MoneyData.Count == 12));
+
+                Assert.IsTrue(data.Any(i =>
+                    i.Name == "John" && i.Age == 32 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10));
+
+                Assert.IsTrue(data.Any(i =>
+                    i.Name == "Luis" && i.Age == 56 && i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560));
+
+                Assert.IsTrue(data.Any(i =>
+                    i.Name == "Mary" && i.Age == 45 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12));
             }
         }
     }

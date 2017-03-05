@@ -15,7 +15,7 @@ Using the package is really simple. Let's work with a simple example first.
 
 Consider you want to extract the following data from a spreadsheet:
 
-![First table](images/Table1.png)
+![First table](images/Table1.PNG)
 
 Just a define a class to hold the data.
 

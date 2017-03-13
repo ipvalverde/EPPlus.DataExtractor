@@ -35,10 +35,5 @@
   <ItemGroup>
     <ProjectReference Include="..\EPPlus.DataExtractor\EPPlus.DataExtractor.csproj" />
   </ItemGroup>
-  <ItemGroup>
-  <Dependency Include="EPPlus">
-    <Version>4.0</Version>
-  </Dependency>
-</ItemGroup>
   <Import Project="$(NuProjPath)\NuProj.targets" />
 </Project>

@@ -13,7 +13,7 @@ namespace EPPlus.DataExtractor
         IRowDataExtractor<TModel>
         where TModel : class, new()
     {
-        public RowDataExtractor(Expression<Func<TModel, TValue>> propertyExpression) : base(propertyExpression)
+        public RowDataExtractor(Expression<Func<TModel, TValue>> propertyExpression) : base(propertyExpression, null)
         {}
 
         void IRowDataExtractor<TModel>.SetPropertyValue(TModel dataInstance, ExcelRangeBase cellRange)

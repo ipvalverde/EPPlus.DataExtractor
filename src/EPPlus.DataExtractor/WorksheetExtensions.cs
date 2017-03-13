@@ -1,13 +1,9 @@
 ﻿using OfficeOpenXml;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EPPlus.DataExtractor
 {
-    public static class EPPlusExtensions
+    public static class WorksheetExtensions
     {
         /// <summary>
         /// Creates an <see cref="IDataExtractor{TRow}"/> to extract data from
@@ -17,13 +13,13 @@ namespace EPPlus.DataExtractor
         /// <typeparam name="TRow">The type that will be populated
         /// with the data from the worksheet.</typeparam>
         /// <param name="worksheet">The worksheet parameter.</param>
-        /// <returns>An instance of <see cref="IDataExtractor"/>.</returns>
+        /// <returns>An instance of <see cref="IDataExtractor{TRow}"/>.</returns>
         public static IDataExtractor<TRow> Extract<TRow>(this ExcelWorksheet worksheet)
             where TRow : class, new()
         {
             if (worksheet == null)
                 throw new ArgumentNullException("worksheet");
-
+            
             return new DataExtractor<TRow>(worksheet);
         }
     }

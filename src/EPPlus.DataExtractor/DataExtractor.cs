@@ -33,8 +33,11 @@ namespace EPPlus.DataExtractor
         /// <param name="propertyExpression">Expression for the property to be mapped.</param>
         /// <param name="column">The column that contains the value to be mapped to
         /// the property defined by <paramref name="propertyExpression"/>.</param>
+        /// <param name="convertDataFunc">Optional function that can be used to convert the cell value, which is an object
+        /// to the desirable <typeparamref name="TValue"/>.</param>
         /// <returns></returns>
-        public ICollectionPropertyConfiguration<TRow> WithProperty<TValue>(Expression<Func<TRow, TValue>> propertyExpression, string column)
+        public ICollectionPropertyConfiguration<TRow> WithProperty<TValue>(Expression<Func<TRow, TValue>> propertyExpression, string column,
+            Func<object, TValue> convertDataFunc = null)
         {
             if (propertyExpression == null)
                 throw new ArgumentNullException("propertyExpression");
@@ -43,7 +46,7 @@ namespace EPPlus.DataExtractor
             if (!columnRegex.IsMatch(column))
                 throw new ArgumentException("The column value must contain only letters.", "column");
 
-            propertySetters.Add(new ColumnDataExtractor<TRow, TValue>(column, propertyExpression));
+            propertySetters.Add(new ColumnDataExtractor<TRow, TValue>(column, propertyExpression, convertDataFunc));
 
             return this;
         }

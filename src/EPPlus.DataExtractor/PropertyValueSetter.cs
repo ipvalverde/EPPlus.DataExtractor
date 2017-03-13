@@ -11,16 +11,24 @@ namespace EPPlus.DataExtractor
     internal abstract class PropertyValueSetter<TModel, TValue>
         where TModel : class, new()
     {
+        private readonly Func<object, TValue> cellValueConverter;
         private readonly Action<TModel, TValue> setPropertyValueAction;
 
-        internal PropertyValueSetter(Expression<Func<TModel, TValue>> propertyExpression)
+        internal PropertyValueSetter(Expression<Func<TModel, TValue>> propertyExpression,
+            Func<object, TValue> cellValueConverter)
         {
             this.setPropertyValueAction = propertyExpression.CreatePropertyValueSetterAction();
+            this.cellValueConverter = cellValueConverter;
         }
 
         protected void SetPropertyValue(TModel dataInstance, ExcelRangeBase cell)
         {
-            var value = cell.GetValue<TValue>();
+            TValue value;
+            if (cellValueConverter == null)
+                value = cell.GetValue<TValue>();
+            else
+                value = this.cellValueConverter(cell.Value);
+
             setPropertyValueAction(dataInstance, value);
         }
     }

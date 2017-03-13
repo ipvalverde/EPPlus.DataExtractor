@@ -15,8 +15,9 @@ namespace EPPlus.DataExtractor
     {
         private readonly string column;
 
-        public ColumnDataExtractor(string column, Expression<Func<TRow, TValue>> propertyExpression)
-            : base(propertyExpression)
+        public ColumnDataExtractor(string column, Expression<Func<TRow, TValue>> propertyExpression,
+            Func<object, TValue> cellValueConverter)
+            : base(propertyExpression, cellValueConverter)
         {
             this.column = column;
         }

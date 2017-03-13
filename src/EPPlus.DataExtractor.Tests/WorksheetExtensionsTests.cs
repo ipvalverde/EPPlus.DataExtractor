@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace EPPlus.DataExtractor.Tests
 {
     [TestClass]
-    public class EPPlusExtensionsTests
+    public class WorksheetExtensionsTests
     {
         public class SimpleRowData
         {
@@ -33,6 +33,11 @@ namespace EPPlus.DataExtractor.Tests
             public double ReceivedMoney { get; set; }
 
             public DateTime Date { get; set; }
+        }
+
+        public class RowDataWithColumnBeingRowAndWithFunction : RowDataWithColumnBeingRow
+        {
+            public bool Is18OrOlder { get; set; }
         }
 
         private static FileInfo GetSpreadsheetFileInfo()
@@ -101,7 +106,46 @@ namespace EPPlus.DataExtractor.Tests
                     i.Name == "Luis" && i.Age == 56 && i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560));
 
                 Assert.IsTrue(data.Any(i =>
-                    i.Name == "Mary" && i.Age == 45 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12));
+                    i.Name == "Mary" && i.Age == 16 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12));
+            }
+        }
+
+        [TestMethod]
+        public void ExtractDataTransformingColumnsIntoRowsWithFunction()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var data = package.Workbook.Worksheets["MainWorksheet"]
+                    .Extract<RowDataWithColumnBeingRowAndWithFunction>()
+                    .WithProperty(p => p.Name, "F")
+                    .WithProperty(p => p.Age, "G")
+                    .WithProperty(p => p.Is18OrOlder, "G",
+                        (value) => {
+                            int intValue;
+                            if (!int.TryParse(value.ToString(), out intValue))
+                                throw new InvalidCastException(string.Format("Cannot convert type {0} to int.", value.GetType()));
+
+                            return intValue >= 18;
+                        })
+                    .WithCollectionProperty(p => p.MoneyData,
+                        item => item.Date, 1,
+                        item => item.ReceivedMoney, "H", "S")
+                    .GetData(2, 4)
+                    .ToList();
+
+                Assert.AreEqual(3, data.Count);
+
+                Assert.IsTrue(data.All(i => i.MoneyData.Count == 12));
+
+                Assert.IsTrue(data.Any(i =>
+                    i.Name == "John" && i.Age == 32 && i.Is18OrOlder == true && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10));
+
+                Assert.IsTrue(data.Any(i =>
+                    i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder == true && i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560));
+
+                Assert.IsTrue(data.Any(i =>
+                    i.Name == "Mary" && i.Age == 16 && i.Is18OrOlder == false && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12));
             }
         }
     }

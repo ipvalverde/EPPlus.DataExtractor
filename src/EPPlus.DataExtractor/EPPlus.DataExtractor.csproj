@@ -51,7 +51,7 @@
     <Compile Include="RowDataExtractor.cs" />
     <Compile Include="ColumnDataExtractor.cs" />
     <Compile Include="DataExtractor.cs" />
-    <Compile Include="EPPlusExtensions.cs" />
+    <Compile Include="WorksheetExtensions.cs" />
     <Compile Include="IDataExtractorInterfaces.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyValueSetter.cs" />
@@ -61,6 +61,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

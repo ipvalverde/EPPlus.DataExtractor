@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPPlus.DataExtractor", "EPPlus.DataExtractor.csproj", "{C7B00BC9-8D05-4CAB-B812-2AF514866874}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPPlus.DataExtractor", "EPPlus.DataExtractor\EPPlus.DataExtractor.csproj", "{C7B00BC9-8D05-4CAB-B812-2AF514866874}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPPlus.DataExtractor.Tests", "..\EPPlus.DataExtractor.Tests\EPPlus.DataExtractor.Tests.csproj", "{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPPlus.DataExtractor.Tests", "EPPlus.DataExtractor.Tests\EPPlus.DataExtractor.Tests.csproj", "{DF4F1F2A-0F12-4014-87F8-F58AE343D4D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

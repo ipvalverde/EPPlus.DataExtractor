@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 namespace EPPlus.DataExtractor.Tests
 {
+    [DeploymentItem("spreadsheets/WorkbookTest.xlsx")]
     [TestClass]
     public class WorksheetExtensionsTests
     {
@@ -42,10 +43,10 @@ namespace EPPlus.DataExtractor.Tests
 
         private static FileInfo GetSpreadsheetFileInfo()
         {
-            var fileInfo = new FileInfo(@"spreadsheets\WorkbookTest.xlsx");
+            var fileInfo = new FileInfo("WorkbookTest.xlsx");
             if (!fileInfo.Exists)
             {
-                Assert.Inconclusive("The spreadsheet file could not be found.");
+                Assert.Inconclusive("The spreadsheet file could not be found in " + fileInfo.FullName);
                 return null;
             }
 

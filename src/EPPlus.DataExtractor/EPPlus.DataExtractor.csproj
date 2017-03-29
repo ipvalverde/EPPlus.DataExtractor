@@ -47,6 +47,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CollectionColumnDataExtractor.cs" />
+    <Compile Include="Data\CellAddress.cs" />
+    <Compile Include="Data\PropertyExtractionContext.cs" />
     <Compile Include="ExpressionHelper.cs" />
     <Compile Include="RowDataExtractor.cs" />
     <Compile Include="ColumnDataExtractor.cs" />

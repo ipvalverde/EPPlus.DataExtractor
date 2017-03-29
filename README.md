@@ -49,6 +49,44 @@ using (var package = new ExcelPackage("spreadsheet/file/location/file.xlsx"))
 
 Yeah, it is that simple!
 
+### Callbacks
+You can also use callbacks for filling properties values, where you can put custom code, validations and even abort the rest of the execution.
+You can specify a callback that is executed over the `object` ( `setPropertyValueCallback` ) value or over the casted `TValue` ( `setPropertyCastedValueCallback` ) type.
+
+The first parameter is of type `PropertyExtractionContext`, that contains data about the cell address used to populate the property ( `PropertyExtractionContext.CellAddress` )
+and a `Abort()` method that can be used to cancel the rest of the processing for the entire extraction. The rows extracted before the execution of the `Abort` will be returned by the `GetData` method, and an entity for the current row will also be returned with all the previous properties populated.
+
+The following code is based on the previous example and uses the `setPropertyCastedValueCallback` to print a message based on the value of the cell:
+
+```csharp
+using (var package = new ExcelPackage("spreadsheet/file/location/file.xlsx"))
+{
+    var cars = package.Workbook.Worksheets["worksheet1"]
+        .Extract<SimpleRowData>()
+        .WithProperty(p => p.CarName, "B")
+        .WithProperty(p => p.Value, "C")
+        .WithProperty(p => p.CreationDate, "D",
+            setPropertyCastedValueCallback: (propContext, creationDate) =>
+            {
+                if(creationDate < new DateTime(2000, 1, 1)) {
+                    Console.WriteLine("The car in row {0} is here for too long, no one will buy it", propContext.CellAddress.Row);
+                }
+
+                // We could also abort if the date time value is not set (i.e. is the default one):
+                /*
+                if(creationDate == default(DateTime))
+                {
+                    Console.WriteLine("Invalid value in cell {0}!", propContext.CellAddress.Address);
+                    propContext.Abort();
+                }
+                */
+            })
+        .GetData(4, 6)
+        .ToList();
+}
+```
+
+
 ### Columns that should be rows
 Sometimes the tables defined in spreadsheets does not have a friendly structure for a developer. Instead of creating multiple tables and foreign key relationships in excel it is simpler to put data that should go into different tables as columns in the existing table.
 It'll be clear with the following example:

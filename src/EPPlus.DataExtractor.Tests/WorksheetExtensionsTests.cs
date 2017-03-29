@@ -11,6 +11,13 @@ namespace EPPlus.DataExtractor.Tests
     [TestClass]
     public class WorksheetExtensionsTests
     {
+        public class NameAndAge
+        {
+            public string Name { get; set; }
+
+            public int Age { get; set; }
+        }
+
         public class SimpleRowData
         {
             public string CarName { get; set; }
@@ -77,6 +84,72 @@ namespace EPPlus.DataExtractor.Tests
 
                 Assert.IsTrue(cars.Any(i =>
                     i.CarName == "Etios" && i.Value == 17575 && i.CreationDate == new DateTime(2015, 07, 21)));
+            }
+        }
+
+        [TestMethod]
+        public void ExtractSimpleData_UseCastedValueCallback()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var validations = new List<string>();
+
+                var people = package.Workbook.Worksheets["TablesWorksheet"]
+                    .Extract<NameAndAge>()
+                    .WithProperty(p => p.Name, "C")
+                    .WithProperty(p => p.Age, "D",
+                        setPropertyCastedValueCallback: (context, age) =>
+                        {
+                            if (age <= 25)
+                                validations.Add(string.Format("Above 25 in {0} (Row: {1}, Column: {2})",
+                                    context.CellAddress.Address, context.CellAddress.Row, context.CellAddress.Column));
+                        })
+                    .GetData(4, 11)
+                    .ToList();
+
+                Assert.AreEqual(8, people.Count);
+
+                Assert.IsTrue(people.All(person => !string.IsNullOrWhiteSpace(person.Name) && person.Age != default(int)));
+
+                Assert.AreEqual(3, validations.Count);
+
+                Assert.IsTrue(validations.Contains("Above 25 in D7 (Row: 7, Column: 4)")); // Joseph, 23
+                Assert.IsTrue(validations.Contains("Above 25 in D9 (Row: 9, Column: 4)")); // Hudson, 24
+                Assert.IsTrue(validations.Contains("Above 25 in D11 (Row: 11, Column: 4)")); // Wanessa, 25
+            }
+        }
+
+        [TestMethod]
+        public void ExtractSimpleData_AbortExecutionBasedOnTheValueCasted()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                // Read the data but aborts when the "CarName" is "i30".
+                // No row after the one being read will be returned, and in the current row,
+                // no other columns after the "CarName" should be populated.
+                var cars = package.Workbook.Worksheets["MainWorksheet"]
+                    .Extract<SimpleRowData>()
+                    .WithProperty(p => p.Value, "C")
+                    .WithProperty(p => p.CarName, "B",
+                        setPropertyValueCallback: (context, obj) =>
+                        {
+                            string strValue = obj as string;
+                            if (strValue != null && strValue == "i30")
+                                context.Abort();
+                        })
+                    .WithProperty(p => p.CreationDate, "D")
+                    .GetData(4, 6)
+                    .ToList();
+
+                Assert.AreEqual(2, cars.Count);
+
+                Assert.IsTrue(cars.Any(i =>
+                    i.Value == 20000 && i.CarName == "Pegeut 203" && i.CreationDate == new DateTime(2017, 07, 01)));
+
+                Assert.IsTrue(cars.Any(i =>
+                    i.Value == 21000 && i.CarName == default(string) && i.CreationDate == default(DateTime)));
             }
         }
 

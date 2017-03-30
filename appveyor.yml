@@ -14,7 +14,7 @@ artifacts:
   name: NuGet
 deploy:  
 - provider: NuGet
-  server: https://www.myget.org/F/epplus-data-extractor/api/v3/index.json
+  server: https://www.myget.org/F/epplus-data-extractor/api/v2
   api_key:
     secure: ePaWJdJRreMdUF7tkjCxouno7mrN3nO4x9Peu5fo1nfRwcVNG8p36WEkKkgsGt6v
   skip_symbols: true

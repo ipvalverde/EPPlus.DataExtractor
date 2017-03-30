@@ -1,17 +1,29 @@
-install:
-  - choco install gitversion.portable -pre -y
-
-assembly_info:
-  patch: false
-
-before_build:
-  - nuget restore
-  - ps: gitversion /l console /output buildserver /updateAssemblyInfo
-
-build:
-  project: <your sln file>
-
-after_build:
-  - cmd: ECHO nuget pack <Project>\<NuSpec>.nuspec -version "%GitVersion_NuGetVersion%" -prop "target=%CONFIGURATION%"
-  - cmd: nuget pack <Project>\<NuSpec>.nuspec -version "%GitVersion_NuGetVersion%" -prop "target=%CONFIGURATION%"
-  - cmd: appveyor PushArtifact "<NuSpec>.%GitVersion_NuGetVersion%.nupkg"
+version: '{build}'  
+pull_requests:  
+  do_not_increment_build_number: true
+branches:  
+  only:
+  - master
+nuget:  
+  disable_publish_on_pr: true
+build_script:  
+- ps: .\build.ps1
+test: off  
+artifacts:  
+- path: .\artifacts\**\*.nupkg
+  name: NuGet
+deploy:  
+- provider: NuGet
+  server: https://www.myget.org/F/epplus-data-extractor/api/v3/index.json
+  api_key:
+    secure: ePaWJdJRreMdUF7tkjCxouno7mrN3nO4x9Peu5fo1nfRwcVNG8p36WEkKkgsGt6v
+  skip_symbols: true
+  on:
+    branch: master
+- provider: NuGet
+  name: production
+  api_key:
+    secure: kY7bsX8GWdeJqsVr4zZZawrB6taElcuvXBtShtP0pZ1q6tw6rn3K1y2eRqL/sj3l
+  on:
+    branch: master
+    appveyor_repo_tag: true

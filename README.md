@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/5emacqun2968f8y1/branch/master?svg=true)](https://ci.appveyor.com/project/ipvalverde/epplus-dataextractor/branch/master)
+
 # Summary
 This is a simple EPPlus extension that make easier to extract POCO from spreadsheets.
 

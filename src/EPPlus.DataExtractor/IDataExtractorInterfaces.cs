@@ -60,12 +60,27 @@ namespace EPPlus.DataExtractor
         where TRow : class, new()
     {
         /// <summary>
-        /// Obtains the entities for the rows previously configured.
+        /// Obtains the entities for the columns previously configured.
         /// </summary>
         /// <param name="fromRow">The initial row to start the data extraction.</param>
         /// <param name="toRow">The last row to read the data.</param>
         /// <returns>Returns an <see cref="IEnumerable{T}"/> with the data of the columns.</returns>
         IEnumerable<TRow> GetData(int fromRow, int toRow);
+
+        /// <summary>
+        /// Obtains the entities for the columns previously configured.
+        /// The row that corresponds to the <paramref name="fromRow"/> will be read first,
+        /// the following rows will be read until the <param name="while" /> returns false,
+        /// the parameter for the predicate are the row index and the <see cref="ExcelRange" />
+        /// containing the data of the worksheet.
+        /// <para>
+        /// The predicate works like the condition of a do-while statement.
+        /// </para>
+        /// </summary>
+        /// <param name="while">The initial row to start the data extraction.</param>
+        /// <param name="continueToNextRow">The condition that must.</param>
+        /// <returns>Returns an <see cref="IEnumerable{T}"/> with the data of the columns.</returns>
+        IEnumerable<TRow> GetData(int fromRow, Predicate<int> @while);
     }
 
     public interface IConfiguredDataExtractor<TRow> : IDataExtractor<TRow>, IGetData<TRow>

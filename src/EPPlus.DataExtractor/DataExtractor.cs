@@ -91,7 +91,21 @@ namespace EPPlus.DataExtractor
         /// <returns>Returns an <see cref="IEnumerable{T}"/> with the data of the columns.</returns>
         public IEnumerable<TRow> GetData(int fromRow, int toRow)
         {
-            for (int row = fromRow; row <= toRow; row++)
+            return this.GetData(fromRow, (currentRow) => currentRow <= toRow);
+        }
+
+        /// <summary>
+        /// Obtains the entities for the columns previously configured.
+        /// The <paramref name="fromRow"/> indicates the initial row that will be read,
+        /// the data extraction will only occur while the <param name="while" /> predicate returns true.
+        /// It'll get executed receiving the row index as parameter before extracting the data of each row.
+        /// </summary>
+        /// <param name="while">The initial row to start the data extraction.</param>
+        /// <param name="continueToNextRow">The condition that must.</param>
+        /// <returns>Returns an <see cref="IEnumerable{T}"/> with the data of the columns.</returns>
+        public IEnumerable<TRow> GetData(int fromRow, Predicate<int> @while)
+        {
+            for (int row = fromRow; @while(row); row++)
             {
                 var dataInstance = new TRow();
 
@@ -99,7 +113,7 @@ namespace EPPlus.DataExtractor
                 for (int index = 0; continueExecution && index < this.propertySetters.Count; index++)
                     continueExecution = this.propertySetters[index].SetPropertyValue(dataInstance, row, this.worksheet.Cells);
 
-                if(!continueExecution)
+                if (!continueExecution)
                 {
                     yield return dataInstance;
                     break;

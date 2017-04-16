@@ -11,6 +11,15 @@ namespace EPPlus.DataExtractor.Tests
     [TestClass]
     public class WorksheetExtensionsTests
     {
+        public class ItemData
+        {
+            public decimal MoneySpent { get; set; }
+
+            public DateTime Date { get; set; }
+
+            public decimal MoneyReceived { get; set; }
+        }
+
         public class NameAndAge
         {
             public string Name { get; set; }
@@ -220,6 +229,32 @@ namespace EPPlus.DataExtractor.Tests
 
                 Assert.IsTrue(data.Any(i =>
                     i.Name == "Mary" && i.Age == 16 && i.Is18OrOlder == false && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12));
+            }
+        }
+
+        [TestMethod]
+        public void ExtractDataWithPredicate()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["TablesWorksheet"];
+
+                var items = worksheet
+                    .Extract<ItemData>()
+                    .WithProperty(p => p.MoneySpent, "G")
+                    .WithProperty(p => p.Date, "H")
+                    .WithProperty(p => p.MoneyReceived, "I")
+                    // Read from row 2 while column 7 (G) has a value
+                    .GetData(2, (row) => worksheet.Cells[row, 7].Value != null)
+                    .ToList();
+
+                // 12 rows should be read, from 2 to 13, both included.
+                Assert.AreEqual(12, items.Count);
+
+                // All items should have a value populated for each property that is not the default value
+                Assert.IsTrue(items.All(i =>
+                    i.Date != default(DateTime) && i.MoneyReceived != default(decimal) && i.MoneySpent != default(decimal)));
             }
         }
     }

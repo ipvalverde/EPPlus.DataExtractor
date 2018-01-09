@@ -21,7 +21,7 @@
   </metadata>
 
   <files>
-    <file src="bin\Release\EPPlus.DataExtractor.dll" target="lib" />
-    <file src="bin\Release\EPPlus.DataExtractor.xml" target="lib" />
+    <file src="bin\Release\EPPlus.DataExtractor.dll" target="lib/net40" />
+    <file src="bin\Release\EPPlus.DataExtractor.xml" target="lib/net40" />
   </files>
 </package>

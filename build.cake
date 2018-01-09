@@ -33,7 +33,7 @@ Task("Restore-NuGet-Packages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-    NuGetRestore("./src/" + solutionName, new NuGetRestoreSettings { MSBuildVersion = NuGetMSBuildVersion.MSBuild14 });
+    NuGetRestore("./src/" + solutionName);
 });
 
 Task("Build")
@@ -46,7 +46,7 @@ Task("Build")
       MSBuild("./src/" + solutionName, settings =>
       {
         settings.SetConfiguration(configuration);
-        settings.ToolVersion = MSBuildToolVersion.VS2015;
+        settings.ToolVersion = MSBuildToolVersion.VS2017;
       });
     }
     else
@@ -69,14 +69,20 @@ Task("Pack")
     .IsDependentOn("Run-Unit-Tests")
     .Does(() =>
 {
+    string nuspecPath = "./src/"+ directoryName + "/" + directoryName + ".nuspec";
+
     GitVersion gitVersion = GitVersion();
 
-    NuGetPack("./src/"+ directoryName + "/" + directoryName + ".nuspec",
-        new NuGetPackSettings
+    Warning("Branch detected: " + gitVersion.BranchName);
+    Warning("Nuget version detected: " + gitVersion.NuGetVersion);
+
+    var packageSettings = new NuGetPackSettings
         {
             OutputDirectory = artifactsFolder,
-            Version = gitVersion.NuGetVersion
-        });
+            Version = gitVersion.NuGetVersion,
+        };
+
+    NuGetPack(nuspecPath, packageSettings);
 });
 
 //////////////////////////////////////////////////////////////////////

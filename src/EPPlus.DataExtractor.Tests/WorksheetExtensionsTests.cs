@@ -211,7 +211,8 @@ namespace EPPlus.DataExtractor.Tests
 
                             return intValue >= 18;
                         })
-                    .WithCollectionProperty(p => p.MoneyData,
+                    .WithCollectionProperty(
+                    p => p.MoneyData,
                         item => item.Date, 1,
                         item => item.ReceivedMoney, "H", "S")
                     .GetData(2, 4)

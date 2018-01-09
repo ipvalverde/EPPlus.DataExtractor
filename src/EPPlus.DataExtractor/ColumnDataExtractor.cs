@@ -1,10 +1,10 @@
-﻿using EPPlus.DataExtractor.Data;
-using OfficeOpenXml;
-using System;
-using System.Linq.Expressions;
-
-namespace EPPlus.DataExtractor
+﻿namespace EPPlus.DataExtractor
 {
+    using EPPlus.DataExtractor.Data;
+    using OfficeOpenXml;
+    using System;
+    using System.Linq.Expressions;
+
     internal interface IColumnDataExtractor<TRow>
     {
         /// <summary>
@@ -14,7 +14,8 @@ namespace EPPlus.DataExtractor
         /// value for this property.
         /// </summary>
         /// <param name="dataInstance"></param>
-        /// <param name="cell"></param>
+        /// <param name="row"></param>
+        /// <param name="cellRange"></param>
         /// <returns></returns>
         bool SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange);
     }

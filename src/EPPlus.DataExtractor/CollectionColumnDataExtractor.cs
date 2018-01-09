@@ -1,10 +1,10 @@
-﻿using OfficeOpenXml;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-namespace EPPlus.DataExtractor
+﻿namespace EPPlus.DataExtractor
 {
+    using OfficeOpenXml;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+
     internal interface ICollectionColumnDataExtractor<TRow>
         where TRow : class, new()
     {
@@ -24,10 +24,13 @@ namespace EPPlus.DataExtractor
         private readonly IRowDataExtractor<TCollectionItem> collectionItemHeadPropertySetter;
         private readonly IRowDataExtractor<TCollectionItem> collectionItemRowPropertySetter;
 
-        public CollectionColumnDataExtractor(Expression<Func<TRow, TCollection>> collectionPropertyExpr,
-            Expression<Func<TCollectionItem, THeadValue>> collectionItemHeaderProperty, int headerRow,
+        public CollectionColumnDataExtractor(
+            Expression<Func<TRow, TCollection>> collectionPropertyExpr,
+            Expression<Func<TCollectionItem, THeadValue>> collectionItemHeaderProperty,
+            int headerRow,
             Expression<Func<TCollectionItem, TRowValue>> collectionItemRowProperty,
-            string initialColumn, string finalColumn)
+            string initialColumn,
+            string finalColumn)
         {
             this.headerRow = headerRow;
             this.initialColumn = initialColumn;
@@ -51,7 +54,7 @@ namespace EPPlus.DataExtractor
         {
             var collection = new TCollection();
             
-            foreach (var cell in cellRange[initialColumn + row + ":" + finalColumn + row])
+            foreach (var cell in cellRange[this.initialColumn + row + ":" + this.finalColumn + row])
             {
                 var collectionItem = new TCollectionItem();
 

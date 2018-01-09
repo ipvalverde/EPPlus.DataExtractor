@@ -46,7 +46,6 @@ Task("Build")
       MSBuild("./src/" + solutionName, settings =>
       {
         settings.SetConfiguration(configuration);
-        settings.ToolVersion = MSBuildToolVersion.VS2017;
       });
     }
     else

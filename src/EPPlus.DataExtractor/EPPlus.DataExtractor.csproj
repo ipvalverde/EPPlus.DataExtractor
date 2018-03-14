@@ -1,70 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C7B00BC9-8D05-4CAB-B812-2AF514866874}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EPPlus.DataExtractor</RootNamespace>
-    <AssemblyName>EPPlus.DataExtractor</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\EPPlus.DataExtractor.XML</DocumentationFile>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>EPPlus.DataExtractor</PackageId>
+    <PackageVersion>1.1.0</PackageVersion>
+    <PackageTitle>EPPlus.DataExtractor</PackageTitle>
+    <Authors>Israel Valverde</Authors>
+    <Description>EPPlus extension that make easier to extract POCO from excel tables.</Description>
+    <PackageProjectUrl>https://github.com/ipvalverde/EPPlus.DataExtractor</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/ipvalverde/EPPlus.DataExtractor/blob/master/LICENSE</PackageLicenseUrl>
+    <Copyright>Copyright © Israel Valverde</Copyright>
+    <PackageTags>EPPlus Excel Spreadsheet sheets extract POCO</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EPPlus, Version=4.1.1.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
-      <HintPath>..\packages\EPPlus.4.1.1\lib\net40\EPPlus.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="EPPlus" Version="4.5.0.3-rc" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CollectionColumnDataExtractor.cs" />
-    <Compile Include="Data\CellAddress.cs" />
-    <Compile Include="Data\PropertyExtractionContext.cs" />
-    <Compile Include="ExpressionHelper.cs" />
-    <Compile Include="RowDataExtractor.cs" />
-    <Compile Include="ColumnDataExtractor.cs" />
-    <Compile Include="DataExtractor.cs" />
-    <Compile Include="WorksheetExtensions.cs" />
-    <Compile Include="IDataExtractorInterfaces.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PropertyValueSetter.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

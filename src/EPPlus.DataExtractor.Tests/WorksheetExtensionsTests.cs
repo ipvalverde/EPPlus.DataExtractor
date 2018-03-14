@@ -1,14 +1,12 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OfficeOpenXml;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Xunit;
 
 namespace EPPlus.DataExtractor.Tests
 {
-    [DeploymentItem("spreadsheets/WorkbookTest.xlsx")]
-    [TestClass]
     public class WorksheetExtensionsTests
     {
         public class ItemData
@@ -57,19 +55,10 @@ namespace EPPlus.DataExtractor.Tests
             public bool Is18OrOlder { get; set; }
         }
 
-        private static FileInfo GetSpreadsheetFileInfo()
-        {
-            var fileInfo = new FileInfo("WorkbookTest.xlsx");
-            if (!fileInfo.Exists)
-            {
-                Assert.Inconclusive("The spreadsheet file could not be found in " + fileInfo.FullName);
-                return null;
-            }
+        private Stream GetSpreadsheetFileInfo() => 
+            GetType().Assembly.GetManifestResourceStream(GetType(), "spreadsheets.WorkbookTest.xlsx");
 
-            return fileInfo;
-        }
-
-        [TestMethod]
+        [Fact]
         public void ExtractSimpleData()
         {
             var fileInfo = GetSpreadsheetFileInfo();
@@ -83,20 +72,18 @@ namespace EPPlus.DataExtractor.Tests
                     .GetData(4, 6)
                     .ToList();
 
-                Assert.AreEqual(3, cars.Count);
+                Assert.Equal(3, cars.Count);
 
-                Assert.IsTrue(cars.Any(i =>
-                    i.CarName == "Pegeut 203" && i.Value == 20000 && i.CreationDate == new DateTime(2017, 07, 01)));
-
-                Assert.IsTrue(cars.Any(i =>
-                    i.CarName == "i30" && i.Value == 21000 && i.CreationDate == new DateTime(2017, 04, 15)));
-
-                Assert.IsTrue(cars.Any(i =>
-                    i.CarName == "Etios" && i.Value == 17575 && i.CreationDate == new DateTime(2015, 07, 21)));
+                Assert.Contains(cars,
+                    i => i.CarName == "Pegeut 203" && i.Value == 20000 && i.CreationDate == new DateTime(2017, 07, 01));
+                Assert.Contains(cars,
+                    i => i.CarName == "i30" && i.Value == 21000 && i.CreationDate == new DateTime(2017, 04, 15));
+                Assert.Contains(cars,
+                    i => i.CarName == "Etios" && i.Value == 17575 && i.CreationDate == new DateTime(2015, 07, 21));
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ExtractSimpleData_UseCastedValueCallback()
         {
             var fileInfo = GetSpreadsheetFileInfo();
@@ -117,19 +104,20 @@ namespace EPPlus.DataExtractor.Tests
                     .GetData(4, 11)
                     .ToList();
 
-                Assert.AreEqual(8, people.Count);
+                Assert.Equal(8, people.Count);
 
-                Assert.IsTrue(people.All(person => !string.IsNullOrWhiteSpace(person.Name) && person.Age != default(int)));
+                Assert.True(people.All(person =>
+                    !string.IsNullOrWhiteSpace(person.Name) && person.Age != default(int)));
 
-                Assert.AreEqual(3, validations.Count);
+                Assert.Equal(3, validations.Count);
 
-                Assert.IsTrue(validations.Contains("Above 25 in D7 (Row: 7, Column: 4)")); // Joseph, 23
-                Assert.IsTrue(validations.Contains("Above 25 in D9 (Row: 9, Column: 4)")); // Hudson, 24
-                Assert.IsTrue(validations.Contains("Above 25 in D11 (Row: 11, Column: 4)")); // Wanessa, 25
+                Assert.Contains(validations, x => x == "Above 25 in D7 (Row: 7, Column: 4)"); // Joseph, 23
+                Assert.Contains(validations, x => x == "Above 25 in D9 (Row: 9, Column: 4)"); // Hudson, 24
+                Assert.Contains(validations, x => x == "Above 25 in D11 (Row: 11, Column: 4)"); // Wanessa, 25
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ExtractSimpleData_AbortExecutionBasedOnTheValueCasted()
         {
             var fileInfo = GetSpreadsheetFileInfo();
@@ -152,17 +140,17 @@ namespace EPPlus.DataExtractor.Tests
                     .GetData(4, 6)
                     .ToList();
 
-                Assert.AreEqual(2, cars.Count);
+                Assert.Equal(2, cars.Count);
 
-                Assert.IsTrue(cars.Any(i =>
-                    i.Value == 20000 && i.CarName == "Pegeut 203" && i.CreationDate == new DateTime(2017, 07, 01)));
+                Assert.Contains(cars, i =>
+                    i.Value == 20000 && i.CarName == "Pegeut 203" && i.CreationDate == new DateTime(2017, 07, 01));
 
-                Assert.IsTrue(cars.Any(i =>
-                    i.Value == 21000 && i.CarName == default(string) && i.CreationDate == default(DateTime)));
+                Assert.Contains(cars, i =>
+                    i.Value == 21000 && i.CarName == default(string) && i.CreationDate == default(DateTime));
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ExtractDataTransformingColumnsIntoRows()
         {
             var fileInfo = GetSpreadsheetFileInfo();
@@ -178,22 +166,25 @@ namespace EPPlus.DataExtractor.Tests
                     .GetData(2, 4)
                     .ToList();
 
-                Assert.AreEqual(3, data.Count);
+                Assert.Equal(3, data.Count);
 
-                Assert.IsTrue(data.All(i => i.MoneyData.Count == 12));
+                Assert.True(data.All(i => i.MoneyData.Count == 12));
 
-                Assert.IsTrue(data.Any(i =>
-                    i.Name == "John" && i.Age == 32 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10));
+                Assert.Contains(data,  i =>
+                    i.Name == "John" && i.Age == 32 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) &&
+                    i.MoneyData[0].ReceivedMoney == 10);
 
-                Assert.IsTrue(data.Any(i =>
-                    i.Name == "Luis" && i.Age == 56 && i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560));
+                Assert.Contains(data,  i =>
+                    i.Name == "Luis" && i.Age == 56 && i.MoneyData[6].Date == new DateTime(2016, 07, 01) &&
+                    i.MoneyData[6].ReceivedMoney == 17560);
 
-                Assert.IsTrue(data.Any(i =>
-                    i.Name == "Mary" && i.Age == 16 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12));
+                Assert.Contains(data,  i =>
+                    i.Name == "Mary" && i.Age == 16 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) &&
+                    i.MoneyData[0].ReceivedMoney == 12);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ExtractDataTransformingColumnsIntoRowsWithFunction()
         {
             var fileInfo = GetSpreadsheetFileInfo();
@@ -204,36 +195,41 @@ namespace EPPlus.DataExtractor.Tests
                     .WithProperty(p => p.Name, "F")
                     .WithProperty(p => p.Age, "G")
                     .WithProperty(p => p.Is18OrOlder, "G",
-                        (value) => {
+                        (value) =>
+                        {
                             int intValue;
                             if (!int.TryParse(value.ToString(), out intValue))
-                                throw new InvalidCastException(string.Format("Cannot convert type {0} to int.", value.GetType()));
+                                throw new InvalidCastException(string.Format("Cannot convert type {0} to int.",
+                                    value.GetType()));
 
                             return intValue >= 18;
                         })
                     .WithCollectionProperty(
-                    p => p.MoneyData,
+                        p => p.MoneyData,
                         item => item.Date, 1,
                         item => item.ReceivedMoney, "H", "S")
                     .GetData(2, 4)
                     .ToList();
 
-                Assert.AreEqual(3, data.Count);
+                Assert.Equal(3, data.Count);
 
-                Assert.IsTrue(data.All(i => i.MoneyData.Count == 12));
+                Assert.True(data.All(i => i.MoneyData.Count == 12));
 
-                Assert.IsTrue(data.Any(i =>
-                    i.Name == "John" && i.Age == 32 && i.Is18OrOlder == true && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10));
+                Assert.Contains(data,  i =>
+                    i.Name == "John" && i.Age == 32 && i.Is18OrOlder == true &&
+                    i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10);
 
-                Assert.IsTrue(data.Any(i =>
-                    i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder == true && i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560));
+                Assert.Contains(data,  i =>
+                    i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder == true &&
+                    i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560);
 
-                Assert.IsTrue(data.Any(i =>
-                    i.Name == "Mary" && i.Age == 16 && i.Is18OrOlder == false && i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12));
+                Assert.Contains(data,  i =>
+                    i.Name == "Mary" && i.Age == 16 && i.Is18OrOlder == false &&
+                    i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ExtractDataWithPredicate()
         {
             var fileInfo = GetSpreadsheetFileInfo();
@@ -251,11 +247,12 @@ namespace EPPlus.DataExtractor.Tests
                     .ToList();
 
                 // 12 rows should be read, from 2 to 13, both included.
-                Assert.AreEqual(12, items.Count);
+                Assert.Equal(12, items.Count);
 
                 // All items should have a value populated for each property that is not the default value
-                Assert.IsTrue(items.All(i =>
-                    i.Date != default(DateTime) && i.MoneyReceived != default(decimal) && i.MoneySpent != default(decimal)));
+                Assert.True(items.All(i =>
+                    i.Date != default(DateTime) && i.MoneyReceived != default(decimal) &&
+                    i.MoneySpent != default(decimal)));
             }
         }
     }

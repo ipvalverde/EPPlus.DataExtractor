@@ -16,12 +16,11 @@
     <tags>EPPlus Excel Spreadsheet sheets extract POCO</tags>
 
     <dependencies>
-      <dependency id="EPPlus" version="4.1" />
+      <dependency id="EPPlus" version="4.5" />
     </dependencies>
   </metadata>
 
   <files>
-    <file src="bin\Release\EPPlus.DataExtractor.dll" target="lib/net40" />
-    <file src="bin\Release\EPPlus.DataExtractor.xml" target="lib/net40" />
+    <file src="bin\Release\netstandard2.0\EPPlus.DataExtractor.dll" target="lib/netstandard2.0" />
   </files>
 </package>

@@ -17,6 +17,7 @@ namespace EPPlus.DataExtractor
         private readonly ExcelWorksheet worksheet;
         private readonly List<IColumnDataExtractor<TRow>> propertySetters;
         private readonly List<ICollectionColumnDataExtractor<TRow>> collectionColumnSetters;
+        private int headerRow = 1;
 
         internal DataExtractor(ExcelWorksheet worksheet)
         {
@@ -166,6 +167,85 @@ namespace EPPlus.DataExtractor
             this.collectionColumnSetters.Add(collectionConfiguration);
 
             return this;
+        }
+
+        /// <summary>
+        /// Sets the row which will be used to find headers.
+        /// </summary>
+        /// <param name="row">The row which will be used to find headers (1-based; default value is 1)</param>
+        public ICollectionPropertyConfiguration<TRow> WithHeaderRow(int row)
+        {
+            this.headerRow = row;
+            return this;
+        }
+
+        /// <summary>
+        /// Maps a property from the type defined as the row model
+        /// to the column identifier that has its value.
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="propertyExpression">Expression for the property to be mapped.</param>
+        /// <param name="columnHeader">Header of the column that contains the value to be mapped to
+        /// the property defined by <paramref name="propertyExpression"/>.</param>
+        /// <param name="validateCellValue">Optional callback that gets executed before retrieving the cell value casted to <typeparamref name="TValue"/>.
+        /// The first parameter contains the cell address and a method that can abort the entire execution.
+        /// The second one the value of the cell.</param>
+        /// <param name="validateCastedCellValue">Optional callback that gets executed after retrieving the cell value casted to <typeparamref name="TValue"/>.
+        /// The first parameter contains the cell address and a method that can abort the entire execution.
+        /// The second one the value of the cell.</param>
+        /// <returns></returns>
+        public ICollectionPropertyConfiguration<TRow> WithPropertyHeader<TValue>(Expression<Func<TRow, TValue>> propertyExpression,
+            string columnHeader,
+            Action<PropertyExtractionContext, object> validateCellValue = null,
+            Action<PropertyExtractionContext, TValue> validateCastedCellValue = null)
+        {
+            return this.WithPropertyHeader(propertyExpression, columnHeader, null,
+                validateCellValue, validateCastedCellValue);
+        }
+
+        /// <summary>
+        /// Maps a property from the type defined as the row model
+        /// to the column identifier that has its value.
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="propertyExpression">Expression for the property to be mapped.</param>
+        /// <param name="columnHeader">Header of the column that contains the value to be mapped to
+        /// the property defined by <paramref name="propertyExpression"/>.</param>
+        /// <param name="convertDataFunc">Function that can be used to convert the cell value, which is an object
+        /// to the desirable <typeparamref name="TValue"/>.</param>
+        /// <param name="setPropertyValueCallback">Optional callback that gets executed prior to the <paramref name="convertDataFunc"/>.
+        /// The first parameter contains the cell address and a method that can abort the entire execution.
+        /// The second one the value of the cell.</param>
+        /// <param name="setPropertyCastedValueCallback">Optional callback that gets executed after the <paramref name="convertDataFunc"/>.
+        /// The first parameter contains the cell address and a method that can abort the entire execution.
+        /// The second one the value of the cell.</param>
+        /// <returns></returns>
+        public ICollectionPropertyConfiguration<TRow> WithPropertyHeader<TValue>(Expression<Func<TRow, TValue>> propertyExpression,
+            string columnHeader, Func<object, TValue> convertDataFunc, Action<PropertyExtractionContext, object> setPropertyValueCallback = null,
+            Action<PropertyExtractionContext, TValue> setPropertyCastedValueCallback = null)
+        {
+            if (string.IsNullOrWhiteSpace(columnHeader))
+                throw new ArgumentNullException(nameof(columnHeader));
+
+            string column = FindColumnByHeader(columnHeader);
+
+            propertySetters.Add(new ColumnDataExtractor<TRow, TValue>(column, propertyExpression, convertDataFunc,
+                setPropertyValueCallback, setPropertyCastedValueCallback));
+
+            return this;
+        }
+
+        private string FindColumnByHeader(string columnHeader)
+        {
+            var lastColumn = this.worksheet.Dimension.End.Column;
+            for (int col = 1; col <= lastColumn; ++col)
+            {
+                var cell = this.worksheet.Cells[this.headerRow, col];
+                if (cell.Text == columnHeader)
+                    return Regex.Replace(cell.Start.Address, @"\d*", ""); //turn "C1" into "C"
+            }
+
+            throw new ArgumentException($"Column header not found: {columnHeader}", nameof(columnHeader));
         }
     }
 }

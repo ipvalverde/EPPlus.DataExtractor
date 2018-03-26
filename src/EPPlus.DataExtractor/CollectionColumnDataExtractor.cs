@@ -40,16 +40,6 @@
             this.collectionItemRowPropertySetter = new RowDataExtractor<TCollectionItem, TRowValue>(collectionItemRowProperty);
         }
 
-        private static Action<TRow, TCollection> CreateSetCollectionPropertyAction(Expression<Func<TRow, TCollection>> collectionPropertyExpr)
-        {
-            var parameter = Expression.Parameter(typeof(TCollection));
-            var setPropActionExpression = Expression.Lambda<Action<TRow, TCollection>>(
-                Expression.Assign(collectionPropertyExpr.Body, parameter),
-                collectionPropertyExpr.Parameters[0], parameter);
-
-            return setPropActionExpression.Compile();
-        }
-
         public void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange)
         {
             var collection = new TCollection();

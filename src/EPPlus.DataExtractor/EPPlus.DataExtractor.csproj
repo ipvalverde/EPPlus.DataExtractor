@@ -17,4 +17,7 @@ A subsequent version will be targeting multiple platforms.</PackageReleaseNotes>
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="4.5.0.3-rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
 </Project>

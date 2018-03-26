@@ -1,8 +1,8 @@
-﻿using System;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using Xunit;
 
 namespace EPPlus.DataExtractor.Tests
@@ -55,7 +55,22 @@ namespace EPPlus.DataExtractor.Tests
             public bool Is18OrOlder { get; set; }
         }
 
-        private Stream GetSpreadsheetFileInfo() => 
+        public class CarDealerBranchRevenue
+        {
+            public string BranchName { get; set; }
+            public string BranchLocation { get; set; }
+
+            public List<MonthlyRevenue> RevenueByMonth { get; set; }
+
+            public class MonthlyRevenue
+            {
+                public string Month { get; set; }
+
+                public decimal Revenue { get; set; }
+            }
+        }
+
+        private Stream GetSpreadsheetFileInfo() =>
             GetType().Assembly.GetManifestResourceStream(GetType(), "spreadsheets.WorkbookTest.xlsx");
 
         [Fact]
@@ -170,17 +185,17 @@ namespace EPPlus.DataExtractor.Tests
 
                 Assert.True(data.All(i => i.MoneyData.Count == 12));
 
-                Assert.Contains(data,  i =>
-                    i.Name == "John" && i.Age == 32 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) &&
-                    i.MoneyData[0].ReceivedMoney == 10);
+                Assert.Contains(data, i =>
+                   i.Name == "John" && i.Age == 32 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) &&
+                   i.MoneyData[0].ReceivedMoney == 10);
 
-                Assert.Contains(data,  i =>
-                    i.Name == "Luis" && i.Age == 56 && i.MoneyData[6].Date == new DateTime(2016, 07, 01) &&
-                    i.MoneyData[6].ReceivedMoney == 17560);
+                Assert.Contains(data, i =>
+                   i.Name == "Luis" && i.Age == 56 && i.MoneyData[6].Date == new DateTime(2016, 07, 01) &&
+                   i.MoneyData[6].ReceivedMoney == 17560);
 
-                Assert.Contains(data,  i =>
-                    i.Name == "Mary" && i.Age == 16 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) &&
-                    i.MoneyData[0].ReceivedMoney == 12);
+                Assert.Contains(data, i =>
+                   i.Name == "Mary" && i.Age == 16 && i.MoneyData[0].Date == new DateTime(2016, 01, 01) &&
+                   i.MoneyData[0].ReceivedMoney == 12);
             }
         }
 
@@ -215,17 +230,17 @@ namespace EPPlus.DataExtractor.Tests
 
                 Assert.True(data.All(i => i.MoneyData.Count == 12));
 
-                Assert.Contains(data,  i =>
-                    i.Name == "John" && i.Age == 32 && i.Is18OrOlder == true &&
-                    i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10);
+                Assert.Contains(data, i =>
+                   i.Name == "John" && i.Age == 32 && i.Is18OrOlder == true &&
+                   i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10);
 
-                Assert.Contains(data,  i =>
-                    i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder == true &&
-                    i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560);
+                Assert.Contains(data, i =>
+                   i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder == true &&
+                   i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560);
 
-                Assert.Contains(data,  i =>
-                    i.Name == "Mary" && i.Age == 16 && i.Is18OrOlder == false &&
-                    i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12);
+                Assert.Contains(data, i =>
+                   i.Name == "Mary" && i.Age == 16 && i.Is18OrOlder == false &&
+                   i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12);
             }
         }
 
@@ -253,6 +268,54 @@ namespace EPPlus.DataExtractor.Tests
                 Assert.True(items.All(i =>
                     i.Date != default(DateTime) && i.MoneyReceived != default(decimal) &&
                     i.MoneySpent != default(decimal)));
+            }
+        }
+
+
+        [Fact]
+        public void ExtractDataTransformingAGroupOfColumnsIntoRows()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var data = package.Workbook.Worksheets["ColumnsGroupsAsRowsWorksheet"]
+                    .Extract<CarDealerBranchRevenue>()
+                    .WithProperty(p => p.BranchName, "A")
+                    .WithProperty(p => p.BranchLocation, "B")
+                    .WithCollectionProperty(p => p.RevenueByMonth,
+                        1,
+                        "C",
+                        cfg => cfg
+                                .WithProperty(revenueByMonth => revenueByMonth.Month, "Month")
+                                .WithProperty(revenueByMonth => revenueByMonth.Revenue, "Revenue"))
+                    .GetData(2, 3)
+                    .ToList();
+
+                Assert.Equal(2, data.Count);
+
+                Assert.True(data.All(i => i.RevenueByMonth.Count == 4));
+
+                {
+                    var seattleBranch = data.SingleOrDefault(i => i.BranchName == "Seattle local car dealer" && i.BranchLocation == "Seattle, WA");
+                    Assert.NotNull(seattleBranch);
+                    Assert.NotEmpty(seattleBranch.RevenueByMonth);
+                    Assert.Equal(4, seattleBranch.RevenueByMonth.Count);
+                    Assert.Contains(seattleBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "January" && revenueBymonth.Revenue == 57000);
+                    Assert.Contains(seattleBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "February" && revenueBymonth.Revenue == 100000);
+                    Assert.Contains(seattleBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "March" && revenueBymonth.Revenue == -300);
+                    Assert.Contains(seattleBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "April" && revenueBymonth.Revenue == 95420.45m);
+                }
+
+                {
+                    var newYorkBranch = data.SingleOrDefault(i => i.BranchName == "Liberty autos" && i.BranchLocation == "New York, NY");
+                    Assert.NotNull(newYorkBranch);
+                    Assert.NotEmpty(newYorkBranch.RevenueByMonth);
+                    Assert.Equal(4, newYorkBranch.RevenueByMonth.Count);
+                    Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "March" && revenueBymonth.Revenue == 500000);
+                    Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "April" && revenueBymonth.Revenue == 1200000);
+                    Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "May" && revenueBymonth.Revenue == 100000);
+                    Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "August" && revenueBymonth.Revenue == 325000);
+                }
             }
         }
     }

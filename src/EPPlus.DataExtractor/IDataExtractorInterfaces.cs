@@ -168,5 +168,53 @@ namespace EPPlus.DataExtractor
             Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn)
             where TCollectionItem : class, new();
+
+        /// <summary>
+        /// Configure a collection property from <typeparamref name="TRow"/> object
+        /// that will be populated by columns data, instead of rows.
+        /// </summary>
+        /// <typeparam name="TCollectionItem">The type used inside a collection.
+        /// This type will usually have two properties, one to hold the column header and another
+        /// one for the row value.</typeparam>
+        /// <param name="propertyCollection">An expression that specifies the collection
+        /// property that will hold the values.</param>
+        /// <param name="startColumn">The start of the column that will be extract to the collection.</param>
+        /// <param name="endColumn">The start of the column that will be extract to the collection.</param>
+        /// <returns></returns>
+        ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
+            string startColumn, string endColumn) where TCollectionItem : class;
+
+        /// <summary>
+        /// Configure a collection property from <typeparamref name="TRow"/> object
+        /// that will be populated by columns data, instead of rows.
+        /// </summary>
+        /// <typeparam name="TCollectionItem">The type used inside a collection.
+        /// This type will usually have two properties, one to hold the column header and another
+        /// one for the row value.</typeparam>
+        /// <param name="propertyCollection">An expression that specifies the collection
+        /// property that will hold the values.</param>
+        /// <param name="startColumn">The start of the column that will be extract to the collection.</param>
+        /// <param name="endColumn">The start of the column that will be extract to the collection.</param>
+        /// <returns></returns>
+        ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
+            string startColumn, string endColumn) where TCollectionItem : class;
+
+        /// <summary>
+        /// Configure a collection property from <typeparamref name="TRow"/> object
+        /// that will be populated by columns data, instead of rows.
+        /// </summary>
+        /// <typeparam name="TCollectionItem">The type used inside a collection.
+        /// This type will usually have two properties, one to hold the column header and another
+        /// one for the row value.</typeparam>
+        /// <param name="propertyCollection">An expression that specifies the collection
+        /// property that will hold the values.</param>
+        /// <param name="startColumn">The start of the column that will be extract to the collection.</param>
+        /// <param name="endColumn">The start of the column that will be extract to the collection.</param>
+        /// <returns></returns>
+        ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
+            string startColumn, string endColumn) where TCollectionItem : class;
     }
 }

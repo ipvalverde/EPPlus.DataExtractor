@@ -131,39 +131,36 @@ namespace EPPlus.DataExtractor
             }
         }
 
-        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, TRowValue>(
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
             Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
-            Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem, TRowValue>
-                (propertyCollection, rowProperty, startColumn, endColumn);
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>
+                (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);
 
             return this;
         }
 
-        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, TRowValue>(
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
             Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
-            Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem, TRowValue>
-                (propertyCollection, rowProperty, startColumn, endColumn);
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>
+                (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);
 
             return this;
         }
 
-        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, TRowValue>(
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
             Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
-            Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem, TRowValue>
-                (propertyCollection, rowProperty, startColumn, endColumn);
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>
+                (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);
 

@@ -275,8 +275,7 @@ namespace EPPlus.DataExtractor.Tests
                     .Extract<MultiLingualUserData>()
                     .WithProperty(p => p.FirstName, "B")
                     .WithProperty(p => p.LastName, "A")
-                    .WithCollectionProperty(x => x.LanguagesSpoken,
-                        item => item, "C","D")
+                    .WithCollectionProperty(x => x.LanguagesSpoken, "C","D")
                     // Read from row 2 to 4
                     .GetData(2,4)
                     .ToList();

@@ -11,7 +11,7 @@
         void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange);
     }
 
-    internal class SimpleCollectionColumnDataExtractor<TRow, TCollection, TCollectionItem, TRowValue>
+    internal class SimpleCollectionColumnDataExtractor<TRow, TCollection, TCollectionItem>
         : ISimpleCollectionColumnDataExtractor<TRow>
         where TCollection : class, ICollection<TCollectionItem>, new()
         where TRow : class, new()
@@ -24,7 +24,6 @@
 
         public SimpleCollectionColumnDataExtractor(
             Expression<Func<TRow, TCollection>> collectionPropertyExpr,
-            Expression<Func<TCollectionItem, TRowValue>> collectionItemRowProperty,
             string initialColumn,
             string finalColumn)
         {

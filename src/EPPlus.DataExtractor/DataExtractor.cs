@@ -17,12 +17,14 @@ namespace EPPlus.DataExtractor
         private readonly ExcelWorksheet worksheet;
         private readonly List<IColumnDataExtractor<TRow>> propertySetters;
         private readonly List<ICollectionColumnDataExtractor<TRow>> collectionColumnSetters;
+        private readonly List<ISimpleCollectionColumnDataExtractor<TRow>> simpleCollectionColumnSetters;
 
         internal DataExtractor(ExcelWorksheet worksheet)
         {
             this.worksheet = worksheet;
             this.propertySetters = new List<IColumnDataExtractor<TRow>>();
             this.collectionColumnSetters = new List<ICollectionColumnDataExtractor<TRow>>();
+            this.simpleCollectionColumnSetters = new List<ISimpleCollectionColumnDataExtractor<TRow>>();
         }
 
         /// <summary>
@@ -122,8 +124,50 @@ namespace EPPlus.DataExtractor
                 foreach (var collectionPropertySetter in this.collectionColumnSetters)
                     collectionPropertySetter.SetPropertyValue(dataInstance, row, this.worksheet.Cells);
 
+                foreach (var simpleCollectionColumnSetter in this.simpleCollectionColumnSetters)
+                    simpleCollectionColumnSetter.SetPropertyValue(dataInstance, row, this.worksheet.Cells);
+
                 yield return dataInstance;
             }
+        }
+
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, TRowValue>(
+            Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
+            Expression<Func<TCollectionItem, TRowValue>> rowProperty,
+            string startColumn, string endColumn) where TCollectionItem : class
+        {
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem, TRowValue>
+                (propertyCollection, rowProperty, startColumn, endColumn);
+
+            this.simpleCollectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
+        }
+
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, TRowValue>(
+            Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
+            Expression<Func<TCollectionItem, TRowValue>> rowProperty,
+            string startColumn, string endColumn) where TCollectionItem : class
+        {
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem, TRowValue>
+                (propertyCollection, rowProperty, startColumn, endColumn);
+
+            this.simpleCollectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
+        }
+
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, TRowValue>(
+            Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
+            Expression<Func<TCollectionItem, TRowValue>> rowProperty,
+            string startColumn, string endColumn) where TCollectionItem : class
+        {
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem, TRowValue>
+                (propertyCollection, rowProperty, startColumn, endColumn);
+
+            this.simpleCollectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
         }
 
         public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, THeaderValue, TRowValue>(

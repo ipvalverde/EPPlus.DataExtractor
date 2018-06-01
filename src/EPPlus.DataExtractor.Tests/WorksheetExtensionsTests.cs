@@ -50,12 +50,19 @@ namespace EPPlus.DataExtractor.Tests
             public DateTime Date { get; set; }
         }
 
+        public class MultiLingualUserData
+        {
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public List<string> LanguagesSpoken { get; set; }
+        }
+
         public class RowDataWithColumnBeingRowAndWithFunction : RowDataWithColumnBeingRow
         {
             public bool Is18OrOlder { get; set; }
         }
 
-        private Stream GetSpreadsheetFileInfo() => 
+        private Stream GetSpreadsheetFileInfo() =>
             GetType().Assembly.GetManifestResourceStream(GetType(), "spreadsheets.WorkbookTest.xlsx");
 
         [Fact]
@@ -253,6 +260,38 @@ namespace EPPlus.DataExtractor.Tests
                 Assert.True(items.All(i =>
                     i.Date != default(DateTime) && i.MoneyReceived != default(decimal) &&
                     i.MoneySpent != default(decimal)));
+            }
+        }
+
+        [Fact]
+        public void ExtractSimpleDataCollection()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["StringsCollectionWorksheet"];
+
+                var items = worksheet
+                    .Extract<MultiLingualUserData>()
+                    .WithProperty(p => p.FirstName, "B")
+                    .WithProperty(p => p.LastName, "A")
+                    .WithCollectionProperty(x => x.LanguagesSpoken,
+                        item => item, "C","D")
+                    // Read from row 2 to 4
+                    .GetData(2,4)
+                    .ToList();
+
+                // 2 rows should be read.
+                Assert.Equal(3, items.Count);
+
+                // First record should have two languages
+                Assert.Equal(2,items[0].LanguagesSpoken.Count);
+
+                // Second record should have one language
+                Assert.Single(items[1].LanguagesSpoken);
+
+                //Third record should have no languages
+                Assert.Empty(items[2].LanguagesSpoken);
             }
         }
     }

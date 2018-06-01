@@ -231,15 +231,15 @@ namespace EPPlus.DataExtractor.Tests
                 Assert.True(data.All(i => i.MoneyData.Count == 12));
 
                 Assert.Contains(data, i =>
-                   i.Name == "John" && i.Age == 32 && i.Is18OrOlder == true &&
+                   i.Name == "John" && i.Age == 32 && i.Is18OrOlder &&
                    i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10);
 
                 Assert.Contains(data, i =>
-                   i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder == true &&
+                   i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder &&
                    i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560);
 
                 Assert.Contains(data, i =>
-                   i.Name == "Mary" && i.Age == 16 && i.Is18OrOlder == false &&
+                   i.Name == "Mary" && i.Age == 16 && !i.Is18OrOlder &&
                    i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12);
             }
         }

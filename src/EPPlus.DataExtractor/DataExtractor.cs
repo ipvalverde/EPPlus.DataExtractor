@@ -1,19 +1,22 @@
-﻿using OfficeOpenXml;
+﻿using EPPlus.DataExtractor.Data;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-using EPPlus.DataExtractor.Data;
 
 namespace EPPlus.DataExtractor
 {
+    internal static class DataExtractor
+    {
+        // Regex used to check the column string.
+        internal static readonly Regex ColumnRegex = new Regex("^[A-Za-z]+$", RegexOptions.Compiled);
+    }
+
     internal class DataExtractor<TRow> : ICollectionPropertyConfiguration<TRow>, IConfiguredDataExtractor<TRow>
         where TRow : class, new()
     {
-        // Regex use to check the column string.
-        private static readonly Regex columnRegex = new Regex("^[A-Za-z]+$", RegexOptions.Compiled);
-
         private readonly ExcelWorksheet worksheet;
         private readonly List<IColumnDataExtractor<TRow>> propertySetters;
         private readonly List<ICollectionColumnDataExtractor<TRow>> collectionColumnSetters;
@@ -73,11 +76,11 @@ namespace EPPlus.DataExtractor
             Action<PropertyExtractionContext, TValue> setPropertyCastedValueCallback = null)
         {
             if (propertyExpression == null)
-                throw new ArgumentNullException("propertyExpression");
+                throw new ArgumentNullException(nameof(propertyExpression));
             if(string.IsNullOrWhiteSpace(column))
-                throw new ArgumentNullException("column");
-            if (!columnRegex.IsMatch(column))
-                throw new ArgumentException("The column value must contain only letters.", "column");
+                throw new ArgumentNullException(nameof(column));
+            if (!DataExtractor.ColumnRegex.IsMatch(column))
+                throw new ArgumentException("The column value must contain only letters.", nameof(column));
 
             propertySetters.Add(new ColumnDataExtractor<TRow, TValue>(column, propertyExpression, convertDataFunc,
                 setPropertyValueCallback, setPropertyCastedValueCallback));
@@ -205,6 +208,123 @@ namespace EPPlus.DataExtractor
                 (propertyCollection, headerProperty, headerRow, rowProperty, startColumn, endColumn);
 
             this.collectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configures a collection property to unpivot multiple columns to items in the collection property.
+        /// Different from the overloads, this method allows for having an undefined amount of columns
+        /// to be unpivoted to the collection.
+        /// </summary>
+        /// <param name="propertyCollection">Expression for the collection that will be populated
+        /// with elements from the columns.</param>
+        /// <param name="headerRow">The number of the row where the header is defined. This row will be used
+        /// to search for the text of the collection columns mapping.</param>
+        /// <param name="startingColumn">Indicates the column address (with letters) where this collection
+        /// starts.</param>
+        /// <param name="configurePropertiesAction">Action to be used to configure the columns
+        /// for the collection items. Use the method
+        /// <see cref="IColumnToCollectionConfiguration.WithColumn{TRowValue}(Expression{Func{TCollectionItem, TRowValue}}, string)"/>
+        /// to define the mappings of the columns.
+        /// </param>
+        /// <returns></returns>
+        public ICollectionPropertyConfigurationWithoutColumnsToCollection<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
+            int headerRow,
+            string startingColumn,
+            Action<IColumnToCollectionConfiguration<TCollectionItem>> configurePropertiesAction)
+            where TCollectionItem : class, new()
+        {
+            if (propertyCollection == null)
+                throw new ArgumentNullException(nameof(propertyCollection));
+            if (configurePropertiesAction == null)
+                throw new ArgumentNullException(nameof(configurePropertiesAction));
+
+            var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
+            configurePropertiesAction(columnToCollectionConfiguration);
+
+            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>(
+                propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
+            this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configures a collection property to unpivot multiple columns to items in the collection property.
+        /// Different from the overloads, this method allows for having an undefined amount of columns
+        /// to be unpivoted to the collection.
+        /// </summary>
+        /// <param name="propertyCollection">Expression for the collection that will be populated
+        /// with elements from the columns.</param>
+        /// <param name="headerRow">The number of the row where the header is defined. This row will be used
+        /// to search for the text of the collection columns mapping.</param>
+        /// <param name="startingColumn">Indicates the column address (with letters) where this collection
+        /// starts.</param>
+        /// <param name="configurePropertiesAction">Action to be used to configure the columns
+        /// for the collection items. Use the method
+        /// <see cref="IColumnToCollectionConfiguration.WithColumn{TRowValue}(Expression{Func{TCollectionItem, TRowValue}}, string)"/>
+        /// to define the mappings of the columns.
+        /// </param>
+        /// <returns></returns>
+        public ICollectionPropertyConfigurationWithoutColumnsToCollection<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
+            int headerRow,
+            string startingColumn,
+            Action<IColumnToCollectionConfiguration<TCollectionItem>> configurePropertiesAction)
+            where TCollectionItem : class, new()
+        {
+            if (propertyCollection == null)
+                throw new ArgumentNullException(nameof(propertyCollection));
+            if (configurePropertiesAction == null)
+                throw new ArgumentNullException(nameof(configurePropertiesAction));
+
+            var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
+            configurePropertiesAction(columnToCollectionConfiguration);
+
+            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>(
+                propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
+            this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configures a collection property to unpivot multiple columns to items in the collection property.
+        /// Different from the overloads, this method allows for having an undefined amount of columns
+        /// to be unpivoted to the collection.
+        /// </summary>
+        /// <param name="propertyCollection">Expression for the collection that will be populated
+        /// with elements from the columns.</param>
+        /// <param name="headerRow">The number of the row where the header is defined. This row will be used
+        /// to search for the text of the collection columns mapping.</param>
+        /// <param name="startingColumn">Indicates the column address (with letters) where this collection
+        /// starts.</param>
+        /// <param name="configurePropertiesAction">Action to be used to configure the columns
+        /// for the collection items. Use the method
+        /// <see cref="IColumnToCollectionConfiguration.WithColumn{TRowValue}(Expression{Func{TCollectionItem, TRowValue}}, string)"/>
+        /// to define the mappings of the columns.
+        /// </param>
+        /// <returns></returns>
+        public ICollectionPropertyConfigurationWithoutColumnsToCollection<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
+            int headerRow,
+            string startingColumn,
+            Action<IColumnToCollectionConfiguration<TCollectionItem>> configurePropertiesAction)
+            where TCollectionItem : class, new()
+        {
+            if (propertyCollection == null)
+                throw new ArgumentNullException(nameof(propertyCollection));
+            if (configurePropertiesAction == null)
+                throw new ArgumentNullException(nameof(configurePropertiesAction));
+
+            var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
+            configurePropertiesAction(columnToCollectionConfiguration);
+
+            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>(
+                propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
+            this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
 
             return this;
         }

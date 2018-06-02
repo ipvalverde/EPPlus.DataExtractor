@@ -50,6 +50,13 @@ namespace EPPlus.DataExtractor.Tests
             public DateTime Date { get; set; }
         }
 
+        public class MultiLingualUserData
+        {
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public List<string> LanguagesSpoken { get; set; }
+        }
+
         public class RowDataWithColumnBeingRowAndWithFunction : RowDataWithColumnBeingRow
         {
             public bool Is18OrOlder { get; set; }
@@ -316,6 +323,37 @@ namespace EPPlus.DataExtractor.Tests
                     Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "May" && revenueBymonth.Revenue == 100000);
                     Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "August" && revenueBymonth.Revenue == 325000);
                 }
+            }
+        }
+
+        [Fact]
+        public void ExtractSimpleDataCollection()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["StringsCollectionWorksheet"];
+
+                var items = worksheet
+                    .Extract<MultiLingualUserData>()
+                    .WithProperty(p => p.FirstName, "B")
+                    .WithProperty(p => p.LastName, "A")
+                    .WithCollectionProperty(x => x.LanguagesSpoken, "C","D")
+                    // Read from row 2 to 4
+                    .GetData(2,4)
+                    .ToList();
+
+                // 2 rows should be read.
+                Assert.Equal(3, items.Count);
+
+                // First record should have two languages
+                Assert.Equal(2,items[0].LanguagesSpoken.Count);
+
+                // Second record should have one language
+                Assert.Single(items[1].LanguagesSpoken);
+
+                //Third record should have no languages
+                Assert.Empty(items[2].LanguagesSpoken);
             }
         }
     }

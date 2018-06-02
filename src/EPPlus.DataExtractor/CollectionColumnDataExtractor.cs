@@ -43,7 +43,7 @@
         public void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange)
         {
             var collection = new TCollection();
-            
+
             foreach (var cell in cellRange[this.initialColumn + row + ":" + this.finalColumn + row])
             {
                 var collectionItem = new TCollectionItem();

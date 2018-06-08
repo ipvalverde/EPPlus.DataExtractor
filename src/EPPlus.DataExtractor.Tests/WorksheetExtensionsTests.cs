@@ -50,6 +50,13 @@ namespace EPPlus.DataExtractor.Tests
             public DateTime Date { get; set; }
         }
 
+        public class MultiLingualUserData
+        {
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public List<string> LanguagesSpoken { get; set; }
+        }
+
         public class RowDataWithColumnBeingRowAndWithFunction : RowDataWithColumnBeingRow
         {
             public bool Is18OrOlder { get; set; }
@@ -231,15 +238,15 @@ namespace EPPlus.DataExtractor.Tests
                 Assert.True(data.All(i => i.MoneyData.Count == 12));
 
                 Assert.Contains(data, i =>
-                   i.Name == "John" && i.Age == 32 && i.Is18OrOlder == true &&
+                   i.Name == "John" && i.Age == 32 && i.Is18OrOlder &&
                    i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 10);
 
                 Assert.Contains(data, i =>
-                   i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder == true &&
+                   i.Name == "Luis" && i.Age == 56 && i.Is18OrOlder &&
                    i.MoneyData[6].Date == new DateTime(2016, 07, 01) && i.MoneyData[6].ReceivedMoney == 17560);
 
                 Assert.Contains(data, i =>
-                   i.Name == "Mary" && i.Age == 16 && i.Is18OrOlder == false &&
+                   i.Name == "Mary" && i.Age == 16 && !i.Is18OrOlder &&
                    i.MoneyData[0].Date == new DateTime(2016, 01, 01) && i.MoneyData[0].ReceivedMoney == 12);
             }
         }
@@ -316,6 +323,42 @@ namespace EPPlus.DataExtractor.Tests
                     Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "May" && revenueBymonth.Revenue == 100000);
                     Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "August" && revenueBymonth.Revenue == 325000);
                 }
+            }
+        }
+
+        [Fact]
+        public void ExtractSimpleDataCollection()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["StringsCollectionWorksheet"];
+
+                var items = worksheet
+                    .Extract<MultiLingualUserData>()
+                    .WithProperty(p => p.FirstName, "B")
+                    .WithProperty(p => p.LastName, "A")
+                    .WithCollectionProperty(x => x.LanguagesSpoken, "C", "E")
+                    // Read from row 2 to 4
+                    .GetData(2, 4)
+                    .ToList();
+
+                // 3 rows should be read.
+                Assert.Equal(3, items.Count);
+
+                // First record should have 2 languages
+                Assert.Equal(2, items[0].LanguagesSpoken.Count);
+                Assert.Contains("Spanish", items[0].LanguagesSpoken);
+                Assert.Contains("Romanian", items[0].LanguagesSpoken);
+
+                // Second record should have 3 languages
+                Assert.Equal(3, items[1].LanguagesSpoken.Count);
+                Assert.Contains("English", items[1].LanguagesSpoken);
+                Assert.Contains("Latin", items[1].LanguagesSpoken);
+                Assert.Contains("Mandarin", items[1].LanguagesSpoken);
+
+                // Third record should have no languages
+                Assert.Empty(items[2].LanguagesSpoken);
             }
         }
     }

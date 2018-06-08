@@ -14,18 +14,20 @@ namespace EPPlus.DataExtractor
         internal static readonly Regex ColumnRegex = new Regex("^[A-Za-z]+$", RegexOptions.Compiled);
     }
 
-    internal class DataExtractor<TRow> : ICollectionPropertyConfiguration<TRow>, IConfiguredDataExtractor<TRow>
+    internal class DataExtractor<TRow> : ICollectionPropertyConfiguration<TRow>
         where TRow : class, new()
     {
         private readonly ExcelWorksheet worksheet;
         private readonly List<IColumnDataExtractor<TRow>> propertySetters;
         private readonly List<ICollectionColumnDataExtractor<TRow>> collectionColumnSetters;
+        private readonly List<ISimpleCollectionColumnDataExtractor<TRow>> simpleCollectionColumnSetters;
 
         internal DataExtractor(ExcelWorksheet worksheet)
         {
             this.worksheet = worksheet;
             this.propertySetters = new List<IColumnDataExtractor<TRow>>();
             this.collectionColumnSetters = new List<ICollectionColumnDataExtractor<TRow>>();
+            this.simpleCollectionColumnSetters = new List<ISimpleCollectionColumnDataExtractor<TRow>>();
         }
 
         /// <summary>
@@ -36,20 +38,20 @@ namespace EPPlus.DataExtractor
         /// <param name="propertyExpression">Expression for the property to be mapped.</param>
         /// <param name="column">The column that contains the value to be mapped to
         /// the property defined by <paramref name="propertyExpression"/>.</param>
-        /// <param name="validateCellValue">Optional callback that gets executed before retrieving the cell value casted to <typeparamref name="TValue"/>.
+        /// <param name="setPropertyValueCallback">Optional callback that gets executed before retrieving the cell value casted to <typeparamref name="TValue"/>.
         /// The first parameter contains the cell address and a method that can abort the entire execution.
         /// The second one the value of the cell.</param>
-        /// <param name="validateCastedCellValue">Optional callback that gets executed after retrieving the cell value casted to <typeparamref name="TValue"/>.
+        /// <param name="setPropertyCastedValueCallback">Optional callback that gets executed after retrieving the cell value casted to <typeparamref name="TValue"/>.
         /// The first parameter contains the cell address and a method that can abort the entire execution.
         /// The second one the value of the cell.</param>
         /// <returns></returns>
         public ICollectionPropertyConfiguration<TRow> WithProperty<TValue>(Expression<Func<TRow, TValue>> propertyExpression,
             string column,
-            Action<PropertyExtractionContext, object> validateCellValue = null,
-            Action<PropertyExtractionContext, TValue> validateCastedCellValue = null)
+            Action<PropertyExtractionContext, object> setPropertyValueCallback = null,
+            Action<PropertyExtractionContext, TValue> setPropertyCastedValueCallback = null)
         {
             return this.WithProperty(propertyExpression, column, null,
-                validateCellValue, validateCastedCellValue);
+                setPropertyValueCallback, setPropertyCastedValueCallback);
         }
 
         /// <summary>
@@ -125,8 +127,47 @@ namespace EPPlus.DataExtractor
                 foreach (var collectionPropertySetter in this.collectionColumnSetters)
                     collectionPropertySetter.SetPropertyValue(dataInstance, row, this.worksheet.Cells);
 
+                foreach (var simpleCollectionColumnSetter in this.simpleCollectionColumnSetters)
+                    simpleCollectionColumnSetter.SetPropertyValue(dataInstance, row, this.worksheet.Cells);
+
                 yield return dataInstance;
             }
+        }
+
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
+            string startColumn, string endColumn) where TCollectionItem : class
+        {
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>
+                (propertyCollection, startColumn, endColumn);
+
+            this.simpleCollectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
+        }
+
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
+            string startColumn, string endColumn) where TCollectionItem : class
+        {
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>
+                (propertyCollection, startColumn, endColumn);
+
+            this.simpleCollectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
+        }
+
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
+            string startColumn, string endColumn) where TCollectionItem : class
+        {
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>
+                (propertyCollection, startColumn, endColumn);
+
+            this.simpleCollectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
         }
 
         public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, THeaderValue, TRowValue>(
@@ -204,6 +245,84 @@ namespace EPPlus.DataExtractor
             configurePropertiesAction(columnToCollectionConfiguration);
 
             var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>(
+                propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
+            this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configures a collection property to unpivot multiple columns to items in the collection property.
+        /// Different from the overloads, this method allows for having an undefined amount of columns
+        /// to be unpivoted to the collection.
+        /// </summary>
+        /// <param name="propertyCollection">Expression for the collection that will be populated
+        /// with elements from the columns.</param>
+        /// <param name="headerRow">The number of the row where the header is defined. This row will be used
+        /// to search for the text of the collection columns mapping.</param>
+        /// <param name="startingColumn">Indicates the column address (with letters) where this collection
+        /// starts.</param>
+        /// <param name="configurePropertiesAction">Action to be used to configure the columns
+        /// for the collection items. Use the method
+        /// <see cref="IColumnToCollectionConfiguration.WithColumn{TRowValue}(Expression{Func{TCollectionItem, TRowValue}}, string)"/>
+        /// to define the mappings of the columns.
+        /// </param>
+        /// <returns></returns>
+        public ICollectionPropertyConfigurationWithoutColumnsToCollection<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
+            int headerRow,
+            string startingColumn,
+            Action<IColumnToCollectionConfiguration<TCollectionItem>> configurePropertiesAction)
+            where TCollectionItem : class, new()
+        {
+            if (propertyCollection == null)
+                throw new ArgumentNullException(nameof(propertyCollection));
+            if (configurePropertiesAction == null)
+                throw new ArgumentNullException(nameof(configurePropertiesAction));
+
+            var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
+            configurePropertiesAction(columnToCollectionConfiguration);
+
+            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>(
+                propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
+            this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configures a collection property to unpivot multiple columns to items in the collection property.
+        /// Different from the overloads, this method allows for having an undefined amount of columns
+        /// to be unpivoted to the collection.
+        /// </summary>
+        /// <param name="propertyCollection">Expression for the collection that will be populated
+        /// with elements from the columns.</param>
+        /// <param name="headerRow">The number of the row where the header is defined. This row will be used
+        /// to search for the text of the collection columns mapping.</param>
+        /// <param name="startingColumn">Indicates the column address (with letters) where this collection
+        /// starts.</param>
+        /// <param name="configurePropertiesAction">Action to be used to configure the columns
+        /// for the collection items. Use the method
+        /// <see cref="IColumnToCollectionConfiguration.WithColumn{TRowValue}(Expression{Func{TCollectionItem, TRowValue}}, string)"/>
+        /// to define the mappings of the columns.
+        /// </param>
+        /// <returns></returns>
+        public ICollectionPropertyConfigurationWithoutColumnsToCollection<TRow> WithCollectionProperty<TCollectionItem>(
+            Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
+            int headerRow,
+            string startingColumn,
+            Action<IColumnToCollectionConfiguration<TCollectionItem>> configurePropertiesAction)
+            where TCollectionItem : class, new()
+        {
+            if (propertyCollection == null)
+                throw new ArgumentNullException(nameof(propertyCollection));
+            if (configurePropertiesAction == null)
+                throw new ArgumentNullException(nameof(configurePropertiesAction));
+
+            var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
+            configurePropertiesAction(columnToCollectionConfiguration);
+
+            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>(
                 propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
             this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
 

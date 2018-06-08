@@ -142,7 +142,7 @@ using (var package = new ExcelPackage("spreadsheet/file/location/file.xlsx"))
 
 In this previous example the objective was to extract columns and their headers into a collection of custom types inside property inside the main row class type. If you have various columns and the just want the value of them (i.e. the header is meaningless) there is an easier way of doing it as you can see in the next example
 
-![Table 2](images/Table2.PNG)
+![Table 2](images/Table3.PNG)
 
 Consider the model for the rows as:
 ```csharp

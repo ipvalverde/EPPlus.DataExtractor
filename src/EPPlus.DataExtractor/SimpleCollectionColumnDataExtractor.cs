@@ -17,7 +17,6 @@
         where TRow : class, new()
         where TCollectionItem : class
     {
-        private readonly int headerRow;
         private readonly string initialColumn;
         private readonly string finalColumn;
         private readonly Action<TRow, TCollection> setCollectionProperty;

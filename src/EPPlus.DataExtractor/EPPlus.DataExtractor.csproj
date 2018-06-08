@@ -11,11 +11,11 @@
     <Copyright>Copyright © Israel Valverde</Copyright>
     <PackageTags>EPPlus Excel Spreadsheet sheets extract POCO</PackageTags>
     <Version>2.0.0-alpha1</Version>
-    <PackageReleaseNotes>This 2.0.0-alpha1 version is targeting .netstandard2.0, so it has no support for older versions.
+    <PackageReleaseNotes>This 2.0.0-alpha3 version is targeting .netstandard2.0, so it has no support for older versions.
 A subsequent version will be targeting multiple platforms.</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EPPlus" Version="4.5.0.3-rc" />
+    <PackageReference Include="EPPlus" Version="4.5.2.1" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />

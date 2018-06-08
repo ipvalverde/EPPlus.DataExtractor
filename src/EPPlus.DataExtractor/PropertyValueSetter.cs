@@ -14,7 +14,7 @@ namespace EPPlus.DataExtractor
         private readonly Func<object, TValue> cellValueConverter;
         private readonly Action<TModel, TValue> setPropertyValueAction;
 
-        internal PropertyValueSetter(Expression<Func<TModel, TValue>> propertyExpression,
+        protected PropertyValueSetter(Expression<Func<TModel, TValue>> propertyExpression,
             Func<object, TValue> cellValueConverter, Action<PropertyExtractionContext, object> validateValue,
             Action<PropertyExtractionContext, TValue> validateCastedValue)
         {
@@ -54,7 +54,7 @@ namespace EPPlus.DataExtractor
             else
                 value = this.cellValueConverter(cell.Value);
 
-            if(this.validateCastedValue != null)
+            if (this.validateCastedValue != null)
             {
                 this.validateCastedValue(context, value);
                 if (context.Aborted)

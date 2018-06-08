@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace EPPlus.DataExtractor
 {
-    internal interface IRowDataExtractor<TModel>
+    internal interface IRowDataExtractor<in TModel>
     {
         void SetPropertyValue(TModel dataInstance, ExcelRangeBase cellRange);
     }
@@ -13,7 +13,7 @@ namespace EPPlus.DataExtractor
         IRowDataExtractor<TModel>
         where TModel : class, new()
     {
-        public RowDataExtractor(Expression<Func<TModel, TValue>> propertyExpression) : base(propertyExpression, null, null, null)
+        public RowDataExtractor(Expression<Func<TModel, TValue>> propertyExpression, Func<object, TValue> convertDataFunc = null) : base(propertyExpression, convertDataFunc, null, null)
         {}
 
         void IRowDataExtractor<TModel>.SetPropertyValue(TModel dataInstance, ExcelRangeBase cellRange)

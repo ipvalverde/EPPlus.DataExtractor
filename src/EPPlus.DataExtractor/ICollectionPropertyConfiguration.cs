@@ -224,8 +224,12 @@ namespace EPPlus.DataExtractor
         /// should be mapped to this property. This it the value of the column that will be defined in the
         /// header row specified in the <see cref="ICollectionPropertyConfiguration.WithCollectionProperty{TCollectionItem}(Expression{Func{TRow, List{TCollectionItem}}}, int, Action{IColumnToCollectionConfiguration{TCollectionItem}})"/>
         /// </param>
+        /// <param name="convertDataFunc">Function that can be used to convert the cell value, which is an object
+        /// to the desirable <typeparamref name="TValue"/>.</param>
         /// <returns></returns>
         IColumnToCollectionConfiguration<TCollectionItem> WithProperty<TColumnValue>(
-            Expression<Func<TCollectionItem, TColumnValue>> columnValueProperty, string columnHeader);
+            Expression<Func<TCollectionItem, TColumnValue>> columnValueProperty,
+            string columnHeader,
+            Func<object, TColumnValue> convertDataFunc = null);
     }
 }

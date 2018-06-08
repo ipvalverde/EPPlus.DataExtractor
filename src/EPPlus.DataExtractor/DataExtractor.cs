@@ -14,7 +14,7 @@ namespace EPPlus.DataExtractor
         internal static readonly Regex ColumnRegex = new Regex("^[A-Za-z]+$", RegexOptions.Compiled);
     }
 
-    internal class DataExtractor<TRow> : ICollectionPropertyConfiguration<TRow>, IConfiguredDataExtractor<TRow>
+    internal class DataExtractor<TRow> : ICollectionPropertyConfiguration<TRow>
         where TRow : class, new()
     {
         private readonly ExcelWorksheet worksheet;
@@ -38,20 +38,20 @@ namespace EPPlus.DataExtractor
         /// <param name="propertyExpression">Expression for the property to be mapped.</param>
         /// <param name="column">The column that contains the value to be mapped to
         /// the property defined by <paramref name="propertyExpression"/>.</param>
-        /// <param name="validateCellValue">Optional callback that gets executed before retrieving the cell value casted to <typeparamref name="TValue"/>.
+        /// <param name="setPropertyValueCallback">Optional callback that gets executed before retrieving the cell value casted to <typeparamref name="TValue"/>.
         /// The first parameter contains the cell address and a method that can abort the entire execution.
         /// The second one the value of the cell.</param>
-        /// <param name="validateCastedCellValue">Optional callback that gets executed after retrieving the cell value casted to <typeparamref name="TValue"/>.
+        /// <param name="setPropertyCastedValueCallback">Optional callback that gets executed after retrieving the cell value casted to <typeparamref name="TValue"/>.
         /// The first parameter contains the cell address and a method that can abort the entire execution.
         /// The second one the value of the cell.</param>
         /// <returns></returns>
         public ICollectionPropertyConfiguration<TRow> WithProperty<TValue>(Expression<Func<TRow, TValue>> propertyExpression,
             string column,
-            Action<PropertyExtractionContext, object> validateCellValue = null,
-            Action<PropertyExtractionContext, TValue> validateCastedCellValue = null)
+            Action<PropertyExtractionContext, object> setPropertyValueCallback = null,
+            Action<PropertyExtractionContext, TValue> setPropertyCastedValueCallback = null)
         {
             return this.WithProperty(propertyExpression, column, null,
-                validateCellValue, validateCastedCellValue);
+                setPropertyValueCallback, setPropertyCastedValueCallback);
         }
 
         /// <summary>

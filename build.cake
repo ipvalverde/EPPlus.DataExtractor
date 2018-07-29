@@ -13,10 +13,19 @@ var configuration = Argument("configuration", "Release");
 
 const string directoryName = "EPPlus.DataExtractor";
 const string solutionName = "EPPlus.DataExtractor.sln";
+const string testsDirectoryName = "EPPlus.DataExtractor.Tests";
 
 // Define directories.
 var buildDir = Directory("./src/"+ directoryName + "/bin") + Directory(configuration);
 var artifactsFolder = Directory("./artifacts");
+
+// Path to the csproj
+string csProjPath = "./src/"+ directoryName + "/" + directoryName + ".csproj";
+
+// Path to the unit tests project dlls
+string testsCsProjPath = "./src/"+ testsDirectoryName + "/" + testsDirectoryName + "/bin/" + configuration;
+
+GitVersion gitVersion = GitVersion();
 
 //////////////////////////////////////////////////////////////////////
 // TASKS
@@ -29,8 +38,16 @@ Task("Clean")
     CleanDirectory(artifactsFolder);
 });
 
-Task("Restore-NuGet-Packages")
+Task("UpdateCsProjVersion")
     .IsDependentOn("Clean")
+    .Does(() =>
+{
+    var file = File(csProjPath);
+    XmlPoke(file, "/Project/PropertyGroup[@Label='MainGroup']/PackageVersion",  gitVersion.NuGetVersion);
+});
+
+Task("Restore-NuGet-Packages")
+    .IsDependentOn("UpdateCsProjVersion")
     .Does(() =>
 {
     NuGetRestore("./src/" + solutionName);
@@ -40,48 +57,22 @@ Task("Build")
     .IsDependentOn("Restore-NuGet-Packages")
     .Does(() =>
 {
-    if(IsRunningOnWindows())
+    // Use MSBuild
+    MSBuild("./src/" + solutionName, settings =>
     {
-      // Use MSBuild
-      MSBuild("./src/" + solutionName, settings =>
-      {
         settings.SetConfiguration(configuration);
-      });
-    }
-    else
-    {
-      // Use XBuild
-      XBuild("./src/" + solutionName, settings =>
-        settings.SetConfiguration(configuration));
-    }
+        settings.Targets.Clear();
+        settings.Targets.Add("pack");
+    });
 });
 
 Task("Run-Unit-Tests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    MSTest("./src/**/bin/" + configuration + "/*.Tests.dll");
-});
-
-
-Task("Pack")
-    .IsDependentOn("Run-Unit-Tests")
-    .Does(() =>
-{
-    string nuspecPath = "./src/"+ directoryName + "/" + directoryName + ".nuspec";
-
-    GitVersion gitVersion = GitVersion();
-
-    Warning("Branch detected: " + gitVersion.BranchName);
-    Warning("Nuget version detected: " + gitVersion.NuGetVersion);
-
-    var packageSettings = new NuGetPackSettings
-        {
-            OutputDirectory = artifactsFolder,
-            Version = gitVersion.NuGetVersion,
-        };
-
-    NuGetPack(nuspecPath, packageSettings);
+    // ToDo: Fix unit tests
+    // var xunit = new XUnit2Runner();
+    // xunit.Run(new FilePath[] { new FilePath(testsCsProjPath) }, new XUnit2Settings());
 });
 
 //////////////////////////////////////////////////////////////////////
@@ -89,7 +80,7 @@ Task("Pack")
 //////////////////////////////////////////////////////////////////////
 
 Task("Default")
-    .IsDependentOn("Pack");
+    .IsDependentOn("Run-Unit-Tests");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

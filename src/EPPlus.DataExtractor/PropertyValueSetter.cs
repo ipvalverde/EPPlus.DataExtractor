@@ -57,8 +57,10 @@ namespace EPPlus.DataExtractor
             if (this.validateCastedValue != null)
             {
                 this.validateCastedValue(context, value);
+#pragma warning disable S2259 // Since "validateCastedValue" is not null, there is no way for "context" to be ull.
                 if (context.Aborted)
                     return false;
+#pragma warning restore S2259
             }
 
             setPropertyValueAction(dataInstance, value);

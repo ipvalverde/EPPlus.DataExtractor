@@ -30,7 +30,7 @@ GitVersion gitVersion = GitVersion();
 // TASKS
 //////////////////////////////////////////////////////////////////////
 
-var cleanTask = Task("Clean")
+Task("Clean")
     .Does(() =>
 {
     CleanDirectories("./src/**/bin/");
@@ -73,7 +73,7 @@ Task("Pack")
     .IsDependentOn("Run-Unit-Tests")
     .Does(() =>
 {
-    cleanTask.Task.Execute(Context);
+    CleanDirectories("./src/**/bin/");
 
     // Build package
     MSBuild(csProjPath, settings =>

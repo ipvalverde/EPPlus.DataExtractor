@@ -18,6 +18,7 @@ const string testsDirectoryName = "EPPlus.DataExtractor.Tests";
 
 // Path to the csproj
 string csProjPath = "./src/"+ directoryName + "/" + directoryName + ".csproj";
+string nugetPackageSourcePath = "./src/"+ directoryName + "/bin/" + configuration + "/EPPlus.DataExtractor.*.nupkg";
 
 // Path to tests project
 string testsCsProjPath = "./src/"+ testsDirectoryName + "/" + testsDirectoryName + ".csproj";
@@ -74,13 +75,21 @@ Task("Pack")
 {
     cleanTask.Task.Execute(Context);
 
-    // Use MSBuild
+    // Build package
     MSBuild(csProjPath, settings =>
     {
         settings.SetConfiguration(configuration);
         settings.Targets.Clear();
         settings.Targets.Add("pack");
     });
+
+    // Clean artifacts folder
+    CleanDirectory("./artifacts/");
+
+    Warning("Copying artifact: " + nugetPackageSourcePath);
+
+    // Copy nuget package to artifacts folder
+    CopyFiles(nugetPackageSourcePath, "./artifacts/");
 });
 
 //////////////////////////////////////////////////////////////////////

@@ -1,4 +1,5 @@
 #tool "nuget:?package=GitVersion.CommandLine"
+#tool "nuget:?package=xunit.runner.console"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -15,15 +16,12 @@ const string directoryName = "EPPlus.DataExtractor";
 const string solutionName = "EPPlus.DataExtractor.sln";
 const string testsDirectoryName = "EPPlus.DataExtractor.Tests";
 
-// Define directories.
-var buildDir = Directory("./src/"+ directoryName + "/bin") + Directory(configuration);
-var artifactsFolder = Directory("./artifacts");
-
 // Path to the csproj
 string csProjPath = "./src/"+ directoryName + "/" + directoryName + ".csproj";
 
-// Path to the unit tests project dlls
-string testsCsProjPath = "./src/"+ testsDirectoryName + "/" + testsDirectoryName + "/bin/" + configuration;
+// Path to tests project
+string testsCsProjPath = "./src/"+ testsDirectoryName + "/" + testsDirectoryName + ".csproj";
+
 
 GitVersion gitVersion = GitVersion();
 
@@ -31,11 +29,10 @@ GitVersion gitVersion = GitVersion();
 // TASKS
 //////////////////////////////////////////////////////////////////////
 
-Task("Clean")
+var cleanTask = Task("Clean")
     .Does(() =>
 {
-    CleanDirectory(buildDir);
-    CleanDirectory(artifactsFolder);
+    CleanDirectories("./src/**/bin/");
 });
 
 Task("UpdateCsProjVersion")
@@ -58,7 +55,27 @@ Task("Build")
     .Does(() =>
 {
     // Use MSBuild
-    MSBuild("./src/" + solutionName, settings =>
+    MSBuild("./src/" + solutionName);
+});
+
+Task("Run-Unit-Tests")
+    .IsDependentOn("Build")
+    .Does(() =>
+{
+    DotNetCoreTest(testsCsProjPath, new DotNetCoreTestSettings
+        {
+            Configuration = "Release"
+        });
+});
+
+Task("Pack")
+    .IsDependentOn("Run-Unit-Tests")
+    .Does(() =>
+{
+    cleanTask.Task.Execute(Context);
+
+    // Use MSBuild
+    MSBuild(csProjPath, settings =>
     {
         settings.SetConfiguration(configuration);
         settings.Targets.Clear();
@@ -66,21 +83,12 @@ Task("Build")
     });
 });
 
-Task("Run-Unit-Tests")
-    .IsDependentOn("Build")
-    .Does(() =>
-{
-    // ToDo: Fix unit tests
-    // var xunit = new XUnit2Runner();
-    // xunit.Run(new FilePath[] { new FilePath(testsCsProjPath) }, new XUnit2Settings());
-});
-
 //////////////////////////////////////////////////////////////////////
 // TASK TARGETS
 //////////////////////////////////////////////////////////////////////
 
 Task("Default")
-    .IsDependentOn("Run-Unit-Tests");
+    .IsDependentOn("Pack");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

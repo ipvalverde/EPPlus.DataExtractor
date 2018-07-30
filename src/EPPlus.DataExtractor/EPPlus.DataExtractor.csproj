@@ -6,7 +6,7 @@
   
   <PropertyGroup Label="MainGroup">
     <PackageId>EPPlus.DataExtractor</PackageId>
-    <PackageVersion>2.0.1</PackageVersion>
+    <PackageVersion>2.0.1-alpha0002</PackageVersion>
     <PackageTitle>EPPlus.DataExtractor</PackageTitle>
     <Authors>Israel Valverde</Authors>
     <Description>EPPlus extension, targeting .netstandard2.0, that make easier to extract POCO from excel tables.</Description>

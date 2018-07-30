@@ -1,11 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net40;net45;net46</TargetFrameworks>
+  </PropertyGroup>
+  
+  <PropertyGroup Label="MainGroup">
     <PackageId>EPPlus.DataExtractor</PackageId>
-    <PackageVersion>1.1.0</PackageVersion>
+    <PackageVersion>2.0.0</PackageVersion>
     <PackageTitle>EPPlus.DataExtractor</PackageTitle>
     <Authors>Israel Valverde</Authors>
-    <Description>EPPlus extension , targeting .netstandard2.0, that make easier to extract POCO from excel tables.</Description>
+    <Description>EPPlus extension, targeting .netstandard2.0, that make easier to extract POCO from excel tables.</Description>
     <PackageProjectUrl>https://github.com/ipvalverde/EPPlus.DataExtractor</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/ipvalverde/EPPlus.DataExtractor/blob/master/LICENSE</PackageLicenseUrl>
     <Copyright>Copyright © Israel Valverde</Copyright>
@@ -14,6 +18,7 @@
     <PackageReleaseNotes>This 2.0.0-alpha3 version is targeting .netstandard2.0, so it has no support for older versions.
 A subsequent version will be targeting multiple platforms.</PackageReleaseNotes>
   </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="4.5.2.1" />
   </ItemGroup>

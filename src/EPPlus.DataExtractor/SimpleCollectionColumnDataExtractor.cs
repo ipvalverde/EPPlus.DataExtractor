@@ -5,13 +5,7 @@
     using System.Collections.Generic;
     using System.Linq.Expressions;
 
-    internal interface ISimpleCollectionColumnDataExtractor<TRow>
-        where TRow : class, new()
-    {
-        void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange);
-    }
-
-    internal class SimpleCollectionColumnDataExtractor<TRow, TCollection, TCollectionItem>
+    internal class SimpleNewableCollectionColumnDataExtractor<TRow, TCollection, TCollectionItem>
         : ISimpleCollectionColumnDataExtractor<TRow>
         where TCollection : class, ICollection<TCollectionItem>, new()
         where TRow : class, new()
@@ -21,7 +15,7 @@
         private readonly string finalColumn;
         private readonly Action<TRow, TCollection> setCollectionProperty;
 
-        public SimpleCollectionColumnDataExtractor(
+        public SimpleNewableCollectionColumnDataExtractor(
             Expression<Func<TRow, TCollection>> collectionPropertyExpr,
             string initialColumn,
             string finalColumn)

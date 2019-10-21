@@ -105,8 +105,8 @@ namespace EPPlus.DataExtractor
         /// the data extraction will only occur while the <param name="while" /> predicate returns true.
         /// It'll get executed receiving the row index as parameter before extracting the data of each row.
         /// </summary>
-        /// <param name="while">The initial row to start the data extraction.</param>
-        /// <param name="continueToNextRow">The condition that must.</param>
+        /// <param name="fromRow">The initial row to start the data extraction.</param>
+        /// <param name="@while">The condition that must.</param>
         /// <returns>Returns an <see cref="IEnumerable{T}"/> with the data of the columns.</returns>
         public IEnumerable<TRow> GetData(int fromRow, Predicate<int> @while)
         {
@@ -138,7 +138,7 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>
+            var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);
@@ -150,7 +150,7 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>
+            var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);
@@ -162,7 +162,7 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>
+            var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);

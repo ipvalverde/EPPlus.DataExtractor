@@ -209,6 +209,22 @@ namespace EPPlus.DataExtractor
         ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
             Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class;
+
+        /// <summary>
+        /// Configure a collection property from <typeparamref name="TRow"/> object
+        /// that will be populated by columns data, instead of rows.
+        /// </summary>
+        /// <typeparam name="TCollectionItem">The type used inside a collection.
+        /// This type will usually have two properties, one to hold the column header and another
+        /// one for the row value.</typeparam>
+        /// <param name="collectionGetter">Function used to obtain the instance of collection where the
+        /// new values will be added.</param>
+        /// <param name="startColumn">The start of the column that will be extract to the collection.</param>
+        /// <param name="endColumn">The start of the column that will be extract to the collection.</param>
+        /// <returns></returns>
+        ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Func<TRow, ICollection<TCollectionItem>> collectionGetter,
+            string startColumn, string endColumn) where TCollectionItem : class;
     }
 
     public interface IColumnToCollectionConfiguration<TCollectionItem>

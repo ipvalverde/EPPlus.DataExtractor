@@ -34,13 +34,33 @@ namespace EPPlus.DataExtractor.Tests
             public DateTime CreationDate { get; set; }
         }
 
-        public class RowDataWithColumnBeingRow
+        public abstract class BaseRowDataWithColumnBeingRow<TCollection>
+            where TCollection : ICollection<ColumnData>
         {
             public string Name { get; set; }
 
             public int Age { get; set; }
 
-            public List<ColumnData> MoneyData { get; set; }
+            public TCollection MoneyData { get; set; }
+        }
+
+        public class RowDataWithColumnBeingRowWithUninitializedICollection :
+            BaseRowDataWithColumnBeingRow<ICollection<ColumnData>>
+        {
+        }
+
+        public class RowDataWithColumnBeingRowWithInitializedICollection :
+            BaseRowDataWithColumnBeingRow<ICollection<ColumnData>>
+        {
+            public RowDataWithColumnBeingRowWithInitializedICollection()
+            {
+                this.MoneyData = new List<ColumnData>();
+            }
+        }
+
+        public class RowDataWithColumnBeingRow :
+            BaseRowDataWithColumnBeingRow<List<ColumnData>>
+        {
         }
 
         public class ColumnData
@@ -50,11 +70,26 @@ namespace EPPlus.DataExtractor.Tests
             public DateTime Date { get; set; }
         }
 
-        public class MultiLingualUserData
+        public abstract class BaseMultiLingualUserData<TCollection>
+            where TCollection : ICollection<string>
         {
             public string FirstName { get; set; }
             public string LastName { get; set; }
-            public List<string> LanguagesSpoken { get; set; }
+            public TCollection LanguagesSpoken { get; set; }
+        }
+
+        public class MultiLingualUserDataWithICollection :
+            BaseMultiLingualUserData<ICollection<string>>
+        {
+            public MultiLingualUserDataWithICollection()
+            {
+                this.LanguagesSpoken = new List<string>();
+            }
+        }
+
+        public class MultiLingualUserData :
+            BaseMultiLingualUserData<List<string>>
+        {
         }
 
         public class RowDataWithColumnBeingRowAndWithFunction : RowDataWithColumnBeingRow
@@ -336,6 +371,42 @@ namespace EPPlus.DataExtractor.Tests
 
                 var items = worksheet
                     .Extract<MultiLingualUserData>()
+                    .WithProperty(p => p.FirstName, "B")
+                    .WithProperty(p => p.LastName, "A")
+                    .WithCollectionProperty(x => x.LanguagesSpoken, "C", "E")
+                    // Read from row 2 to 4
+                    .GetData(2, 4)
+                    .ToList();
+
+                // 3 rows should be read.
+                Assert.Equal(3, items.Count);
+
+                // First record should have 2 languages
+                Assert.Equal(2, items[0].LanguagesSpoken.Count);
+                Assert.Contains("Spanish", items[0].LanguagesSpoken);
+                Assert.Contains("Romanian", items[0].LanguagesSpoken);
+
+                // Second record should have 3 languages
+                Assert.Equal(3, items[1].LanguagesSpoken.Count);
+                Assert.Contains("English", items[1].LanguagesSpoken);
+                Assert.Contains("Latin", items[1].LanguagesSpoken);
+                Assert.Contains("Mandarin", items[1].LanguagesSpoken);
+
+                // Third record should have no languages
+                Assert.Empty(items[2].LanguagesSpoken);
+            }
+        }
+
+        [Fact]
+        public void ExtractSimpleDataCollection_WithICollectionroperty()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["StringsCollectionWorksheet"];
+
+                var items = worksheet
+                    .Extract<MultiLingualUserDataWithICollection>()
                     .WithProperty(p => p.FirstName, "B")
                     .WithProperty(p => p.LastName, "A")
                     .WithCollectionProperty(x => x.LanguagesSpoken, "C", "E")

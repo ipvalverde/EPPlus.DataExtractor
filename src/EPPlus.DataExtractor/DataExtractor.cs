@@ -170,6 +170,18 @@ namespace EPPlus.DataExtractor
             return this;
         }
 
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Func<TRow, ICollection<TCollectionItem>> propertyCollection,
+            string startColumn, string endColumn) where TCollectionItem : class
+        {
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, ICollection<TCollectionItem>, TCollectionItem>
+                (propertyCollection, startColumn, endColumn);
+
+            this.simpleCollectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
+        }
+
         public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, THeaderValue, TRowValue>(
             Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
             Expression<Func<TCollectionItem, THeaderValue>> headerProperty, int headerRow,

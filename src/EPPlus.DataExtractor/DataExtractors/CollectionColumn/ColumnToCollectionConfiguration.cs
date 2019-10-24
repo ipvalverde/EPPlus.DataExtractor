@@ -1,4 +1,4 @@
-﻿namespace EPPlus.DataExtractor.DataExtractors
+﻿namespace EPPlus.DataExtractor.DataExtractors.CollectionColumn
 {
     using System;
     using System.Collections.Generic;

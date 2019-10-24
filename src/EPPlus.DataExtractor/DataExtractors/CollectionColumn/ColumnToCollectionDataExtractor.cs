@@ -1,36 +1,39 @@
-﻿namespace EPPlus.DataExtractor.DataExtractors
+﻿namespace EPPlus.DataExtractor.DataExtractors.CollectionColumn
 {
-    using EPPlus.DataExtractor.DataExtractors.CollectionColumn;
     using OfficeOpenXml;
     using System;
     using System.Collections.Generic;
-    using System.Linq.Expressions;
 
     internal class ColumnToCollectionDataExtractor<TRow, TCollection, TCollectionItem> : ICollectionColumnDataExtractor<TRow>
-        where TCollection : class, ICollection<TCollectionItem>, new()
+        where TCollection : class, ICollection<TCollectionItem>
         where TRow : class, new()
         where TCollectionItem : class, new()
     {
         private readonly int headerRow;
         private readonly int startingColumn;
-        private readonly Action<TRow, TCollection> setCollectionProperty;
         private readonly ColumnToCollectionConfiguration<TCollectionItem> columnToCollectionConfiguration;
+        private readonly Func<TRow, TCollection> getCollectionProperty;
 
         public ColumnToCollectionDataExtractor(
-            Expression<Func<TRow, TCollection>> collectionPropertyExpr,
+            Func<TRow, TCollection> getCollectionProperty,
             int headerRow,
             string startingColumn,
             ColumnToCollectionConfiguration<TCollectionItem> columnToCollectionConfiguration)
         {
             this.headerRow = headerRow;
             this.startingColumn = SpreadsheetHelper.ConvertColumnHeaderToNumber(startingColumn);
-            this.setCollectionProperty = collectionPropertyExpr.CreatePropertyValueSetterAction();
+            this.getCollectionProperty = getCollectionProperty;
             this.columnToCollectionConfiguration = columnToCollectionConfiguration;
         }
 
         public void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange)
         {
-            var collection = new TCollection();
+            var collection = this.getCollectionProperty(dataInstance);
+            if (collection == null)
+            {
+                throw new InvalidOperationException(
+                    $"An instance of the item {typeof(TRow).Name} returned a null collection property. Ensure the collection property getter returns an initialized instance of ICollection where data can be append to.");
+            }
 
             var collectionItem = new TCollectionItem();
             var headersSetForCurrentInstance = new HashSet<string>();
@@ -64,8 +67,6 @@
             {
                 collection.Add(collectionItem);
             }
-
-            this.setCollectionProperty(dataInstance, collection);
         }
     }
 }

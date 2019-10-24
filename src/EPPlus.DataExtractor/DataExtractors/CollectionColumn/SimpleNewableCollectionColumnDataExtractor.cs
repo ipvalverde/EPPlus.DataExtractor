@@ -29,15 +29,18 @@
 
         public void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange)
         {
-            var collection = this.getCollection(dataInstance) ?? new TCollection();
+            var collection = this.getCollection(dataInstance);
+            if (collection == null)
+            {
+                collection = new TCollection();
+                this.setCollectionProperty(dataInstance, collection);
+            }
 
             foreach (var cell in cellRange[this.initialColumn + row + ":" + this.finalColumn + row])
             {
                 if(!string.IsNullOrWhiteSpace(cell.Value?.ToString()))
                     collection.Add((TCollectionItem) cell.Value);
             }
-
-            this.setCollectionProperty(dataInstance, collection);
         }
     }
 }

@@ -1,43 +1,43 @@
-﻿namespace EPPlus.DataExtractor
+﻿namespace EPPlus.DataExtractor.DataExtractors.CollectionColumn
 {
     using OfficeOpenXml;
     using System;
     using System.Collections.Generic;
+    using System.Linq.Expressions;
 
-    internal class SimpleCollectionColumnDataExtractor<TRow, TCollection, TCollectionItem>
+    internal class SimpleNewableCollectionColumnDataExtractor<TRow, TCollection, TCollectionItem>
         : ISimpleCollectionColumnDataExtractor<TRow>
-        where TCollection : ICollection<TCollectionItem>
+        where TCollection : class, ICollection<TCollectionItem>, new()
         where TRow : class, new()
         where TCollectionItem : class
     {
         private readonly string initialColumn;
         private readonly string finalColumn;
-        private readonly Func<TRow, TCollection> getCollectionProperty;
+        private readonly Action<TRow, TCollection> setCollectionProperty;
+        private readonly Func<TRow, TCollection> getCollection;
 
-        public SimpleCollectionColumnDataExtractor(
-            Func<TRow, TCollection> getCollectionProperty,
+        public SimpleNewableCollectionColumnDataExtractor(
+            Expression<Func<TRow, TCollection>> collectionPropertyExpr,
             string initialColumn,
             string finalColumn)
         {
             this.initialColumn = initialColumn;
             this.finalColumn = finalColumn;
-            this.getCollectionProperty = getCollectionProperty;
+            this.setCollectionProperty = collectionPropertyExpr.CreatePropertyValueSetterAction();
+            this.getCollection = collectionPropertyExpr.Compile();
         }
 
         public void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange)
         {
-            var collection = this.getCollectionProperty(dataInstance);
-            if (collection == null)
-            {
-                throw new InvalidOperationException(
-                    $"An instance of the item {typeof(TRow).Name} returned a null collection property. Ensure the collection property getter returns an initialized instance of ICollection where data can be append to.");
-            }
+            var collection = this.getCollection(dataInstance) ?? new TCollection();
 
             foreach (var cell in cellRange[this.initialColumn + row + ":" + this.finalColumn + row])
             {
                 if(!string.IsNullOrWhiteSpace(cell.Value?.ToString()))
                     collection.Add((TCollectionItem) cell.Value);
             }
+
+            this.setCollectionProperty(dataInstance, collection);
         }
     }
 }

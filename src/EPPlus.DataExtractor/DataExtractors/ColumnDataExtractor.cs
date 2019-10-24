@@ -1,4 +1,4 @@
-﻿namespace EPPlus.DataExtractor
+﻿namespace EPPlus.DataExtractor.DataExtractors
 {
     using EPPlus.DataExtractor.Data;
     using OfficeOpenXml;

@@ -1,15 +1,9 @@
-﻿namespace EPPlus.DataExtractor
+﻿namespace EPPlus.DataExtractor.DataExtractors.CollectionColumn
 {
     using OfficeOpenXml;
     using System;
     using System.Collections.Generic;
     using System.Linq.Expressions;
-
-    internal interface ICollectionColumnDataExtractor<in TRow>
-        where TRow : class, new()
-    {
-        void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange);
-    }
 
     internal class CollectionColumnDataExtractor<TRow, TCollection, TCollectionItem, THeadValue, TRowValue>
         : ICollectionColumnDataExtractor<TRow>

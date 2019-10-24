@@ -1,4 +1,4 @@
-﻿namespace EPPlus.DataExtractor
+﻿namespace EPPlus.DataExtractor.DataExtractors.CollectionColumn
 {
     using OfficeOpenXml;
 

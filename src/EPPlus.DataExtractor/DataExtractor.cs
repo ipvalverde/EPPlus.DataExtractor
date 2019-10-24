@@ -1,4 +1,6 @@
 ﻿using EPPlus.DataExtractor.Data;
+using EPPlus.DataExtractor.DataExtractors;
+using EPPlus.DataExtractor.DataExtractors.CollectionColumn;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;

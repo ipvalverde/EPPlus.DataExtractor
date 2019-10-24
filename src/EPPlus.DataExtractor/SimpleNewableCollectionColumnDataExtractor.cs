@@ -14,6 +14,7 @@
         private readonly string initialColumn;
         private readonly string finalColumn;
         private readonly Action<TRow, TCollection> setCollectionProperty;
+        private readonly Func<TRow, TCollection> getCollection;
 
         public SimpleNewableCollectionColumnDataExtractor(
             Expression<Func<TRow, TCollection>> collectionPropertyExpr,
@@ -23,11 +24,12 @@
             this.initialColumn = initialColumn;
             this.finalColumn = finalColumn;
             this.setCollectionProperty = collectionPropertyExpr.CreatePropertyValueSetterAction();
+            this.getCollection = collectionPropertyExpr.Compile();
         }
 
         public void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange)
         {
-            var collection = new TCollection();
+            var collection = this.getCollection(dataInstance) ?? new TCollection();
 
             foreach (var cell in cellRange[this.initialColumn + row + ":" + this.finalColumn + row])
             {

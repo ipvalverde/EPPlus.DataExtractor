@@ -3,7 +3,6 @@
     using OfficeOpenXml;
     using System;
     using System.Collections.Generic;
-    using System.Linq.Expressions;
 
     internal class SimpleCollectionColumnDataExtractor<TRow, TCollection, TCollectionItem>
         : ISimpleCollectionColumnDataExtractor<TRow>

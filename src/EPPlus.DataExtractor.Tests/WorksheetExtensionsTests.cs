@@ -78,6 +78,11 @@ namespace EPPlus.DataExtractor.Tests
             public TCollection LanguagesSpoken { get; set; }
         }
 
+        public class MultiLingualUserDataWithUnintializedICollection :
+            BaseMultiLingualUserData<ICollection<string>>
+        {
+        }
+
         public class MultiLingualUserDataWithICollection :
             BaseMultiLingualUserData<ICollection<string>>
         {
@@ -241,6 +246,7 @@ namespace EPPlus.DataExtractor.Tests
             }
         }
 
+
         [Fact]
         public void ExtractDataTransformingColumnsIntoRowsWithFunction()
         {
@@ -398,7 +404,7 @@ namespace EPPlus.DataExtractor.Tests
         }
 
         [Fact]
-        public void ExtractSimpleDataCollection_WithICollectionroperty()
+        public void ExtractSimpleDataCollection_WithICollectionProperty()
         {
             var fileInfo = GetSpreadsheetFileInfo();
             using (var package = new ExcelPackage(fileInfo))
@@ -430,6 +436,26 @@ namespace EPPlus.DataExtractor.Tests
 
                 // Third record should have no languages
                 Assert.Empty(items[2].LanguagesSpoken);
+            }
+        }
+
+        [Fact]
+        public void ExtractSimpleDataCollection_WithICollectionPropertyNotInitialized_ShouldThrowException()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["StringsCollectionWorksheet"];
+
+                var dataEnumerable = worksheet
+                    .Extract<MultiLingualUserDataWithUnintializedICollection>()
+                    .WithProperty(p => p.FirstName, "B")
+                    .WithProperty(p => p.LastName, "A")
+                    .WithCollectionProperty(x => x.LanguagesSpoken, "C", "E")
+                    // Read from row 2 to 4
+                    .GetData(2, 4);
+
+                Assert.Throws<InvalidOperationException>(() => dataEnumerable.ToList());
             }
         }
     }

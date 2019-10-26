@@ -1,5 +1,6 @@
 ﻿using EntityFrameworkCoreSample.Model;
 using EPPlus.DataExtractor;
+using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -18,23 +19,60 @@ namespace EntityFrameworkCoreSample
             var data = LoadDataFromSpreadsheet(spreadsheetPath);
             Console.WriteLine($"{data.Count()} records loaded.");
 
-            Console.WriteLine("Saving data into database...");
-            SaveDataIntoDatabase(data);
-            Console.WriteLine("Data saved");
+            try
+            {
+                Console.WriteLine("Saving data into database...");
+                SaveDataIntoDatabase(data);
+                Console.WriteLine("Data saved");
 
-            Console.WriteLine("");
-            Console.WriteLine("Dumping data from database:");
-            DumpDatabaseData();
-            Console.WriteLine("");
-            Console.WriteLine("Press enter to exit.");
-            Console.ReadLine();
+                Console.WriteLine("");
+                Console.WriteLine("Dumping data from database:");
+                DumpDatabaseData();
+                Console.WriteLine("");
+
+                Console.WriteLine("Cleaning database...");
+                ClearDatabase();
+                Console.WriteLine("Database cleared");
+
+                Console.WriteLine("");
+                Console.WriteLine("Press enter to exit.");
+                Console.ReadLine();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("An exception has been thrown, trying to clear database");
+                try
+                {
+                    ClearDatabase();
+                    Console.WriteLine("Database cleared");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error clearing database: {ex}");
+                }
+
+                throw;
+            }
         }
 
-        public static void DumpDatabaseData()
+        private static void ClearDatabase()
         {
             using (var context = new VehicleStoreContext())
             {
-                foreach(var branch in context.Branches)
+                var deleteRevenuesSql = $"DELETE FROM {MonthlyRevenueEntity.TableName}";
+                context.Database.ExecuteSqlCommand(deleteRevenuesSql);
+
+                var deleteBranchesSql = $"DELETE FROM {BranchEntity.TableName}";
+                context.Database.ExecuteSqlCommand(deleteBranchesSql);
+            }
+        }
+
+        private static void DumpDatabaseData()
+        {
+            using (var context = new VehicleStoreContext())
+            {
+                var branchesWithRevenues = context.Branches.Include(b => b.Revenues);
+                foreach (var branch in branchesWithRevenues)
                 {
                     Console.WriteLine(branch);
                 }
@@ -64,9 +102,9 @@ namespace EntityFrameworkCoreSample
                     .WithProperty(b => b.Name, "B")
                     .WithProperty(b => b.Location, "C")
                     .WithProperty(b => b.Phone, "D")
-                    //.WithCollectionProperty(b => b.Revenues,
-                    //    r => r.MonthYear, 2,
-                    //    r => r.Value, "E", "P")
+                    .WithCollectionProperty(b => b.Revenues,
+                        r => r.MonthYear, 2,
+                        r => r.Value, "E", "P")
                     .GetData(3, 4)
                     .ToList();
 

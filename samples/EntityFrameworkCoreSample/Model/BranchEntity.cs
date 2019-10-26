@@ -6,6 +6,8 @@ namespace EntityFrameworkCoreSample.Model
 {
     public class BranchEntity
     {
+        public static string TableName => "Branches";
+
         public string Id { get; set; }
 
         public string Name { get; set; }
@@ -31,7 +33,7 @@ namespace EntityFrameworkCoreSample.Model
                 })
                 .Aggregate(
                     new StringBuilder(),
-                    (ac, cu) => ac.AppendLine($"Vehicles[{cu.Index}]={cu}"));
+                    (ac, cu) => ac.AppendLine($"Revenues[{cu.Index}]={cu}"));
 
             return $@"{nameof(BranchEntity)}
 Id={Id}

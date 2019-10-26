@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EntityFrameworkCoreSample.Migrations
 {
     [DbContext(typeof(VehicleStoreContext))]
-    [Migration("20191021182030_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20191026095633_CreateDatabase")]
+    partial class CreateDatabase
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -34,20 +34,29 @@ namespace EntityFrameworkCoreSample.Migrations
                     b.ToTable("Branches");
                 });
 
-            modelBuilder.Entity("EntityFrameworkCoreSample.Model.VehicleEntity", b =>
+            modelBuilder.Entity("EntityFrameworkCoreSample.Model.MonthlyRevenueEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("DateCreated");
+                    b.Property<string>("BranchId");
 
-                    b.Property<string>("Name");
+                    b.Property<DateTime>("MonthYear");
 
                     b.Property<decimal>("Value");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Vehicles");
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("Revenues");
+                });
+
+            modelBuilder.Entity("EntityFrameworkCoreSample.Model.MonthlyRevenueEntity", b =>
+                {
+                    b.HasOne("EntityFrameworkCoreSample.Model.BranchEntity", "Branch")
+                        .WithMany("Revenues")
+                        .HasForeignKey("BranchId");
                 });
 #pragma warning restore 612, 618
         }

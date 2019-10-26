@@ -1,7 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace EntityFrameworkCoreSample.Model
 {
@@ -14,6 +11,17 @@ namespace EntityFrameworkCoreSample.Model
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("Data Source=vehicle_store.db");
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<BranchEntity>()
+                .ToTable(BranchEntity.TableName)
+                .HasMany(b => b.Revenues)
+                .WithOne(r => r.Branch);
+
+            modelBuilder.Entity<MonthlyRevenueEntity>()
+                .ToTable(MonthlyRevenueEntity.TableName);
         }
     }
 }

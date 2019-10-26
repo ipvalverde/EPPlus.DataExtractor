@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace EntityFrameworkCoreSample.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class CreateDatabase : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -22,28 +22,38 @@ namespace EntityFrameworkCoreSample.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Vehicles",
+                name: "Revenues",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(nullable: true),
+                    Id = table.Column<Guid>(nullable: false),
                     Value = table.Column<decimal>(nullable: false),
-                    DateCreated = table.Column<DateTime>(nullable: false)
+                    MonthYear = table.Column<DateTime>(nullable: false),
+                    BranchId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Vehicles", x => x.Id);
+                    table.PrimaryKey("PK_Revenues", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Revenues_Branches_BranchId",
+                        column: x => x.BranchId,
+                        principalTable: "Branches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Revenues_BranchId",
+                table: "Revenues",
+                column: "BranchId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Branches");
+                name: "Revenues");
 
             migrationBuilder.DropTable(
-                name: "Vehicles");
+                name: "Branches");
         }
     }
 }

@@ -1,31 +1,25 @@
-﻿namespace EPPlus.DataExtractor
+﻿namespace EPPlus.DataExtractor.DataExtractors.CollectionColumn
 {
     using OfficeOpenXml;
     using System;
     using System.Collections.Generic;
     using System.Linq.Expressions;
 
-    internal interface ICollectionColumnDataExtractor<in TRow>
-        where TRow : class, new()
-    {
-        void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange);
-    }
-
     internal class CollectionColumnDataExtractor<TRow, TCollection, TCollectionItem, THeadValue, TRowValue>
         : ICollectionColumnDataExtractor<TRow>
-        where TCollection : class, ICollection<TCollectionItem>, new()
+        where TCollection : class, ICollection<TCollectionItem>
         where TRow : class, new()
         where TCollectionItem : class, new()
     {
         private readonly int headerRow;
         private readonly string initialColumn;
         private readonly string finalColumn;
-        private readonly Action<TRow, TCollection> setCollectionProperty;
+        private readonly Func<TRow, TCollection> getCollectionProperty;
         private readonly IRowDataExtractor<TCollectionItem> collectionItemHeadPropertySetter;
         private readonly IRowDataExtractor<TCollectionItem> collectionItemRowPropertySetter;
 
         public CollectionColumnDataExtractor(
-            Expression<Func<TRow, TCollection>> collectionPropertyExpr,
+            Func<TRow, TCollection> getCollectionProperty,
             Expression<Func<TCollectionItem, THeadValue>> collectionItemHeaderProperty,
             int headerRow,
             Expression<Func<TCollectionItem, TRowValue>> collectionItemRowProperty,
@@ -35,14 +29,19 @@
             this.headerRow = headerRow;
             this.initialColumn = initialColumn;
             this.finalColumn = finalColumn;
-            this.setCollectionProperty = collectionPropertyExpr.CreatePropertyValueSetterAction();
+            this.getCollectionProperty = getCollectionProperty;
             this.collectionItemHeadPropertySetter = new RowDataExtractor<TCollectionItem, THeadValue>(collectionItemHeaderProperty);
             this.collectionItemRowPropertySetter = new RowDataExtractor<TCollectionItem, TRowValue>(collectionItemRowProperty);
         }
 
         public void SetPropertyValue(TRow dataInstance, int row, ExcelRange cellRange)
         {
-            var collection = new TCollection();
+            var collection = this.getCollectionProperty(dataInstance);
+            if (collection == null)
+            {
+                throw new InvalidOperationException(
+                    $"An instance of the item {typeof(TRow).Name} returned a null collection property. Ensure the collection property getter returns an initialized instance of ICollection where data can be append to.");
+            }
 
             foreach (var cell in cellRange[this.initialColumn + row + ":" + this.finalColumn + row])
             {
@@ -57,8 +56,6 @@
 
                 collection.Add(collectionItem);
             }
-
-            this.setCollectionProperty(dataInstance, collection);
         }
     }
 }

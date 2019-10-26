@@ -1,4 +1,6 @@
 ﻿using EPPlus.DataExtractor.Data;
+using EPPlus.DataExtractor.DataExtractors;
+using EPPlus.DataExtractor.DataExtractors.CollectionColumn;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -105,8 +107,8 @@ namespace EPPlus.DataExtractor
         /// the data extraction will only occur while the <param name="while" /> predicate returns true.
         /// It'll get executed receiving the row index as parameter before extracting the data of each row.
         /// </summary>
-        /// <param name="while">The initial row to start the data extraction.</param>
-        /// <param name="continueToNextRow">The condition that must.</param>
+        /// <param name="fromRow">The initial row to start the data extraction.</param>
+        /// <param name="@while">The condition that must.</param>
         /// <returns>Returns an <see cref="IEnumerable{T}"/> with the data of the columns.</returns>
         public IEnumerable<TRow> GetData(int fromRow, Predicate<int> @while)
         {
@@ -138,7 +140,7 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>
+            var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);
@@ -150,7 +152,7 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>
+            var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);
@@ -162,7 +164,19 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
-            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>
+            var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>
+                (propertyCollection, startColumn, endColumn);
+
+            this.simpleCollectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
+        }
+
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
+            Func<TRow, ICollection<TCollectionItem>> propertyCollection,
+            string startColumn, string endColumn) where TCollectionItem : class
+        {
+            var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, ICollection<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
             this.simpleCollectionColumnSetters.Add(collectionConfiguration);
@@ -176,7 +190,7 @@ namespace EPPlus.DataExtractor
             Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class, new()
         {
-            var collectionConfiguration = new CollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
+            var collectionConfiguration = new NewableCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
                 (propertyCollection, headerProperty, headerRow, rowProperty, startColumn, endColumn);
 
             this.collectionColumnSetters.Add(collectionConfiguration);
@@ -190,7 +204,7 @@ namespace EPPlus.DataExtractor
             Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class, new()
         {
-            var collectionConfiguration = new CollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
+            var collectionConfiguration = new NewableCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
                 (propertyCollection, headerProperty, headerRow, rowProperty, startColumn, endColumn);
 
             this.collectionColumnSetters.Add(collectionConfiguration);
@@ -204,8 +218,25 @@ namespace EPPlus.DataExtractor
             Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class, new()
         {
-            var collectionConfiguration = new CollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
+            var collectionConfiguration = new NewableCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
                 (propertyCollection, headerProperty, headerRow, rowProperty, startColumn, endColumn);
+
+            this.collectionColumnSetters.Add(collectionConfiguration);
+
+            return this;
+        }
+
+        public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem, THeaderValue, TRowValue>(
+            Func<TRow, ICollection<TCollectionItem>> collectionGetter,
+            Expression<Func<TCollectionItem, THeaderValue>> headerProperty,
+            int headerRow,
+            Expression<Func<TCollectionItem, TRowValue>> rowProperty,
+            string startColumn,
+            string endColumn)
+            where TCollectionItem : class, new()
+        {
+            var collectionConfiguration = new CollectionColumnDataExtractor<TRow, ICollection<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
+                (collectionGetter, headerProperty, headerRow, rowProperty, startColumn, endColumn);
 
             this.collectionColumnSetters.Add(collectionConfiguration);
 
@@ -244,7 +275,7 @@ namespace EPPlus.DataExtractor
             var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
             configurePropertiesAction(columnToCollectionConfiguration);
 
-            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>(
+            var columnToCollectionDataExtractor = new NewableColumnToCollectionDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>(
                 propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
             this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
 
@@ -283,7 +314,7 @@ namespace EPPlus.DataExtractor
             var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
             configurePropertiesAction(columnToCollectionConfiguration);
 
-            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>(
+            var columnToCollectionDataExtractor = new NewableColumnToCollectionDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>(
                 propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
             this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
 
@@ -322,8 +353,30 @@ namespace EPPlus.DataExtractor
             var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
             configurePropertiesAction(columnToCollectionConfiguration);
 
-            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>(
+            var columnToCollectionDataExtractor = new NewableColumnToCollectionDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>(
                 propertyCollection, headerRow, startingColumn, columnToCollectionConfiguration);
+            this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
+
+            return this;
+        }
+
+        public ICollectionPropertyConfigurationWithoutColumnsToCollection<TRow> WithCollectionProperty<TCollectionItem>(
+            Func<TRow, ICollection<TCollectionItem>> collectionGetter,
+            int headerRow,
+            string startingColumn,
+            Action<IColumnToCollectionConfiguration<TCollectionItem>> configurePropertiesAction)
+            where TCollectionItem : class, new()
+        {
+            if (collectionGetter == null)
+                throw new ArgumentNullException(nameof(collectionGetter));
+            if (configurePropertiesAction == null)
+                throw new ArgumentNullException(nameof(configurePropertiesAction));
+
+            var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
+            configurePropertiesAction(columnToCollectionConfiguration);
+
+            var columnToCollectionDataExtractor = new ColumnToCollectionDataExtractor<TRow, ICollection<TCollectionItem>, TCollectionItem>(
+                collectionGetter, headerRow, startingColumn, columnToCollectionConfiguration);
             this.collectionColumnSetters.Add(columnToCollectionDataExtractor);
 
             return this;

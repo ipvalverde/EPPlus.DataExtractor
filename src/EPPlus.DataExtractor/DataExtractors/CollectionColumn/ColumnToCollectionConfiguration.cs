@@ -1,4 +1,4 @@
-﻿namespace EPPlus.DataExtractor
+﻿namespace EPPlus.DataExtractor.DataExtractors.CollectionColumn
 {
     using System;
     using System.Collections.Generic;
@@ -25,7 +25,7 @@
         /// header row specified in the <see cref="ICollectionPropertyConfiguration.WithCollectionProperty{TCollectionItem}(Expression{Func{TRow, List{TCollectionItem}}}, int, Action{IColumnToCollectionConfiguration{TCollectionItem}})"/>
         /// </param>
         /// <param name="convertDataFunc">Function that can be used to convert the cell value, which is an object
-        /// to the desirable <typeparamref name="TValue"/>.</param>
+        /// to the desirable <typeparamref name="TColumnValue"/>.</param>
         /// <returns></returns>
         public IColumnToCollectionConfiguration<TCollectionItem> WithProperty<TColumnValue>(
             Expression<Func<TCollectionItem, TColumnValue>> columnValueProperty,

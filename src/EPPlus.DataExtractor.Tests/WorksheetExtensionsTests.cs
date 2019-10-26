@@ -34,13 +34,33 @@ namespace EPPlus.DataExtractor.Tests
             public DateTime CreationDate { get; set; }
         }
 
-        public class RowDataWithColumnBeingRow
+        public abstract class BaseRowDataWithColumnBeingRow<TCollection>
+            where TCollection : ICollection<ColumnData>
         {
             public string Name { get; set; }
 
             public int Age { get; set; }
 
-            public List<ColumnData> MoneyData { get; set; }
+            public TCollection MoneyData { get; set; }
+        }
+
+        public class RowDataWithColumnBeingRowWithUninitializedICollection :
+            BaseRowDataWithColumnBeingRow<ICollection<ColumnData>>
+        {
+        }
+
+        public class RowDataWithColumnBeingRowWithInitializedICollection :
+            BaseRowDataWithColumnBeingRow<ICollection<ColumnData>>
+        {
+            public RowDataWithColumnBeingRowWithInitializedICollection()
+            {
+                this.MoneyData = new List<ColumnData>();
+            }
+        }
+
+        public class RowDataWithColumnBeingRow :
+            BaseRowDataWithColumnBeingRow<List<ColumnData>>
+        {
         }
 
         public class ColumnData
@@ -50,11 +70,31 @@ namespace EPPlus.DataExtractor.Tests
             public DateTime Date { get; set; }
         }
 
-        public class MultiLingualUserData
+        public abstract class BaseMultiLingualUserData<TCollection>
+            where TCollection : ICollection<string>
         {
             public string FirstName { get; set; }
             public string LastName { get; set; }
-            public List<string> LanguagesSpoken { get; set; }
+            public TCollection LanguagesSpoken { get; set; }
+        }
+
+        public class MultiLingualUserDataWithUnintializedICollection :
+            BaseMultiLingualUserData<ICollection<string>>
+        {
+        }
+
+        public class MultiLingualUserDataWithICollection :
+            BaseMultiLingualUserData<ICollection<string>>
+        {
+            public MultiLingualUserDataWithICollection()
+            {
+                this.LanguagesSpoken = new List<string>();
+            }
+        }
+
+        public class MultiLingualUserData :
+            BaseMultiLingualUserData<List<string>>
+        {
         }
 
         public class RowDataWithColumnBeingRowAndWithFunction : RowDataWithColumnBeingRow
@@ -62,18 +102,38 @@ namespace EPPlus.DataExtractor.Tests
             public bool Is18OrOlder { get; set; }
         }
 
-        public class CarDealerBranchRevenue
+        static class CarDealerBranch
         {
-            public string BranchName { get; set; }
-            public string BranchLocation { get; set; }
-
-            public List<MonthlyRevenue> RevenueByMonth { get; set; }
-
             public class MonthlyRevenue
             {
                 public string Month { get; set; }
 
                 public decimal Revenue { get; set; }
+            }
+
+            public abstract class BaseCarDealerBranchRevenue<TCollection>
+                where TCollection : ICollection<MonthlyRevenue>
+            {
+                public string BranchName { get; set; }
+                public string BranchLocation { get; set; }
+
+                public TCollection RevenueByMonth { get; set; }
+            }
+
+            public class CarDealerBranchRevenue : BaseCarDealerBranchRevenue<List<MonthlyRevenue>>
+            {
+            }
+
+            public class CarDealerBranchRevenueWithUninitializedICollection : BaseCarDealerBranchRevenue<ICollection<MonthlyRevenue>>
+            {
+            }
+
+            public class CarDealerBranchRevenueWithICollection : BaseCarDealerBranchRevenue<ICollection<MonthlyRevenue>>
+            {
+                public CarDealerBranchRevenueWithICollection()
+                {
+                    this.RevenueByMonth = new List<MonthlyRevenue>();
+                }
             }
         }
 
@@ -207,6 +267,59 @@ namespace EPPlus.DataExtractor.Tests
         }
 
         [Fact]
+        public void ExtractDataTransformingColumnsIntoRows_WithICollectionPropertyNotInitialized_ShouldThrowException()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var dataEnumeration = package.Workbook.Worksheets["MainWorksheet"]
+                    .Extract<RowDataWithColumnBeingRowWithUninitializedICollection>()
+                    .WithProperty(p => p.Name, "F")
+                    .WithProperty(p => p.Age, "G")
+                    .WithCollectionProperty(p => p.MoneyData,
+                        item => item.Date, 1,
+                        item => item.ReceivedMoney, "H", "S")
+                    .GetData(2, 4);
+
+                Assert.Throws<InvalidOperationException>(() => dataEnumeration.ToList());
+            }
+        }
+
+        [Fact]
+        public void ExtractDataTransformingColumnsIntoRows_WithICollectionProperty()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var data = package.Workbook.Worksheets["MainWorksheet"]
+                    .Extract<RowDataWithColumnBeingRowWithInitializedICollection>()
+                    .WithProperty(p => p.Name, "F")
+                    .WithProperty(p => p.Age, "G")
+                    .WithCollectionProperty(p => p.MoneyData,
+                        item => item.Date, 1,
+                        item => item.ReceivedMoney, "H", "S")
+                    .GetData(2, 4)
+                    .ToList();
+
+                Assert.Equal(3, data.Count);
+
+                Assert.True(data.All(i => i.MoneyData.Count == 12));
+
+                Assert.Contains(data, i =>
+                   i.Name == "John" && i.Age == 32 && i.MoneyData.ElementAt(0).Date == new DateTime(2016, 01, 01) &&
+                   i.MoneyData.ElementAt(0).ReceivedMoney == 10);
+
+                Assert.Contains(data, i =>
+                   i.Name == "Luis" && i.Age == 56 && i.MoneyData.ElementAt(6).Date == new DateTime(2016, 07, 01) &&
+                   i.MoneyData.ElementAt(6).ReceivedMoney == 17560);
+
+                Assert.Contains(data, i =>
+                   i.Name == "Mary" && i.Age == 16 && i.MoneyData.ElementAt(0).Date == new DateTime(2016, 01, 01) &&
+                   i.MoneyData.ElementAt(0).ReceivedMoney == 12);
+            }
+        }
+
+        [Fact]
         public void ExtractDataTransformingColumnsIntoRowsWithFunction()
         {
             var fileInfo = GetSpreadsheetFileInfo();
@@ -286,7 +399,7 @@ namespace EPPlus.DataExtractor.Tests
             using (var package = new ExcelPackage(fileInfo))
             {
                 var data = package.Workbook.Worksheets["ColumnsGroupsAsRowsWorksheet"]
-                    .Extract<CarDealerBranchRevenue>()
+                    .Extract<CarDealerBranch.CarDealerBranchRevenue>()
                     .WithProperty(p => p.BranchName, "A")
                     .WithProperty(p => p.BranchLocation, "B")
                     .WithCollectionProperty(p => p.RevenueByMonth,
@@ -327,6 +440,75 @@ namespace EPPlus.DataExtractor.Tests
         }
 
         [Fact]
+        public void ExtractDataTransformingAGroupOfColumnsIntoRows_WithICollectionProperty()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var data = package.Workbook.Worksheets["ColumnsGroupsAsRowsWorksheet"]
+                    .Extract<CarDealerBranch.CarDealerBranchRevenueWithICollection>()
+                    .WithProperty(p => p.BranchName, "A")
+                    .WithProperty(p => p.BranchLocation, "B")
+                    .WithCollectionProperty(p => p.RevenueByMonth,
+                        1,
+                        "C",
+                        cfg => cfg
+                                .WithProperty(revenueByMonth => revenueByMonth.Month, "Month")
+                                .WithProperty(revenueByMonth => revenueByMonth.Revenue, "Revenue"))
+                    .GetData(2, 3)
+                    .ToList();
+
+                Assert.Equal(2, data.Count);
+
+                Assert.True(data.All(i => i.RevenueByMonth.Count == 4));
+
+                {
+                    var seattleBranch = data.SingleOrDefault(i => i.BranchName == "Seattle local car dealer" && i.BranchLocation == "Seattle, WA");
+                    Assert.NotNull(seattleBranch);
+                    Assert.NotEmpty(seattleBranch.RevenueByMonth);
+                    Assert.Equal(4, seattleBranch.RevenueByMonth.Count);
+                    Assert.Contains(seattleBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "January" && revenueBymonth.Revenue == 57000);
+                    Assert.Contains(seattleBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "February" && revenueBymonth.Revenue == 100000);
+                    Assert.Contains(seattleBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "March" && revenueBymonth.Revenue == -300);
+                    Assert.Contains(seattleBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "April" && revenueBymonth.Revenue == 95420.45m);
+                }
+
+                {
+                    var newYorkBranch = data.SingleOrDefault(i => i.BranchName == "Liberty autos" && i.BranchLocation == "New York, NY");
+                    Assert.NotNull(newYorkBranch);
+                    Assert.NotEmpty(newYorkBranch.RevenueByMonth);
+                    Assert.Equal(4, newYorkBranch.RevenueByMonth.Count);
+                    Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "March" && revenueBymonth.Revenue == 500000);
+                    Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "April" && revenueBymonth.Revenue == 1200000);
+                    Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "May" && revenueBymonth.Revenue == 100000);
+                    Assert.Contains(newYorkBranch.RevenueByMonth, revenueBymonth => revenueBymonth.Month == "August" && revenueBymonth.Revenue == 325000);
+                }
+            }
+        }
+
+        [Fact]
+        public void ExtractDataTransformingAGroupOfColumnsIntoRows_WithICollectionPropertyNotInitialized_ShouldThrowException()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var dataEnumeration = package.Workbook.Worksheets["ColumnsGroupsAsRowsWorksheet"]
+                    .Extract<CarDealerBranch.CarDealerBranchRevenueWithUninitializedICollection>()
+                    .WithProperty(p => p.BranchName, "A")
+                    .WithProperty(p => p.BranchLocation, "B")
+                    .WithCollectionProperty(p => p.RevenueByMonth,
+                        1,
+                        "C",
+                        cfg => cfg
+                                .WithProperty(revenueByMonth => revenueByMonth.Month, "Month")
+                                .WithProperty(revenueByMonth => revenueByMonth.Revenue, "Revenue"))
+                    .GetData(2, 3);
+
+                Assert.Throws<InvalidOperationException>(() => dataEnumeration.ToList());
+            }
+        }
+
+        [Fact]
         public void ExtractSimpleDataCollection()
         {
             var fileInfo = GetSpreadsheetFileInfo();
@@ -359,6 +541,62 @@ namespace EPPlus.DataExtractor.Tests
 
                 // Third record should have no languages
                 Assert.Empty(items[2].LanguagesSpoken);
+            }
+        }
+
+        [Fact]
+        public void ExtractSimpleDataCollection_WithICollectionProperty()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["StringsCollectionWorksheet"];
+
+                var items = worksheet
+                    .Extract<MultiLingualUserDataWithICollection>()
+                    .WithProperty(p => p.FirstName, "B")
+                    .WithProperty(p => p.LastName, "A")
+                    .WithCollectionProperty(x => x.LanguagesSpoken, "C", "E")
+                    // Read from row 2 to 4
+                    .GetData(2, 4)
+                    .ToList();
+
+                // 3 rows should be read.
+                Assert.Equal(3, items.Count);
+
+                // First record should have 2 languages
+                Assert.Equal(2, items[0].LanguagesSpoken.Count);
+                Assert.Contains("Spanish", items[0].LanguagesSpoken);
+                Assert.Contains("Romanian", items[0].LanguagesSpoken);
+
+                // Second record should have 3 languages
+                Assert.Equal(3, items[1].LanguagesSpoken.Count);
+                Assert.Contains("English", items[1].LanguagesSpoken);
+                Assert.Contains("Latin", items[1].LanguagesSpoken);
+                Assert.Contains("Mandarin", items[1].LanguagesSpoken);
+
+                // Third record should have no languages
+                Assert.Empty(items[2].LanguagesSpoken);
+            }
+        }
+
+        [Fact]
+        public void ExtractSimpleDataCollection_WithICollectionPropertyNotInitialized_ShouldThrowException()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["StringsCollectionWorksheet"];
+
+                var dataEnumerable = worksheet
+                    .Extract<MultiLingualUserDataWithUnintializedICollection>()
+                    .WithProperty(p => p.FirstName, "B")
+                    .WithProperty(p => p.LastName, "A")
+                    .WithCollectionProperty(x => x.LanguagesSpoken, "C", "E")
+                    // Read from row 2 to 4
+                    .GetData(2, 4);
+
+                Assert.Throws<InvalidOperationException>(() => dataEnumerable.ToList());
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -597,6 +598,51 @@ namespace EPPlus.DataExtractor.Tests
                     .GetData(2, 4);
 
                 Assert.Throws<InvalidOperationException>(() => dataEnumerable.ToList());
+            }
+        }
+
+        public class MultiLingualUserDataWithObservableCollection :
+            BaseMultiLingualUserData<ObservableCollection<string>>
+        {
+            public MultiLingualUserDataWithObservableCollection()
+            {
+                this.LanguagesSpoken = new ObservableCollection<string>();
+            }
+        }
+
+        [Fact]
+        public void ExtractSimpleDataCollection_WithObservableCollectionProperty()
+        {
+            var fileInfo = GetSpreadsheetFileInfo();
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var worksheet = package.Workbook.Worksheets["StringsCollectionWorksheet"];
+
+                var items = worksheet
+                    .Extract<MultiLingualUserDataWithObservableCollection>()
+                    .WithProperty(p => p.FirstName, "B")
+                    .WithProperty(p => p.LastName, "A")
+                    .WithCollectionProperty(x => x.LanguagesSpoken, "C", "E")
+                    // Read from row 2 to 4
+                    .GetData(2, 4)
+                    .ToList();
+
+                // 3 rows should be read.
+                Assert.Equal(3, items.Count);
+
+                // First record should have 2 languages
+                Assert.Equal(2, items[0].LanguagesSpoken.Count);
+                Assert.Contains("Spanish", items[0].LanguagesSpoken);
+                Assert.Contains("Romanian", items[0].LanguagesSpoken);
+
+                // Second record should have 3 languages
+                Assert.Equal(3, items[1].LanguagesSpoken.Count);
+                Assert.Contains("English", items[1].LanguagesSpoken);
+                Assert.Contains("Latin", items[1].LanguagesSpoken);
+                Assert.Contains("Mandarin", items[1].LanguagesSpoken);
+
+                // Third record should have no languages
+                Assert.Empty(items[2].LanguagesSpoken);
             }
         }
     }

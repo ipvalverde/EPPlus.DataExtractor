@@ -18,7 +18,8 @@ namespace EPPlus.DataExtractor
             return setPropActionExpression.Compile();
         }
 
-        internal static void ValidatePropertyExpressionType<TModel, TCollectionItem, TCollectionProperty>(Expression<Func<TModel, TCollectionProperty>> collectionPropertyExpr)
+        internal static void ValidatePropertyExpressionType<TModel, TCollectionItem, TCollectionProperty>(
+            this Expression<Func<TModel, TCollectionProperty>> collectionPropertyExpr)
             where TCollectionProperty : class, ICollection<TCollectionItem>, new()
         {
             var expectedType = typeof(TCollectionProperty);
@@ -55,7 +56,7 @@ namespace EPPlus.DataExtractor
                         return mExpression;
                 }
 
-                throw new ArgumentException();
+                throw new ArgumentException("The expression property is not of a valid type. Ensure the expression points to a property member in the model i.e. 'm => m.MyProperty'.");
             }
         }
     }

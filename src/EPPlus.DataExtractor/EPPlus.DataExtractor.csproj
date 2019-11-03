@@ -31,6 +31,10 @@ A subsequent version will be targeting multiple platforms.</PackageReleaseNotes>
   
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="4.5.2.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />

@@ -32,6 +32,19 @@ namespace EPPlus.DataExtractor
             this.simpleCollectionColumnSetters = new List<ISimpleCollectionColumnDataExtractor<TRow>>();
         }
 
+        private static void ValidateColumn(string column, string propertyName)
+        {
+            var argumentName = propertyName ?? nameof(column);
+            if (string.IsNullOrWhiteSpace(column))
+            {
+                throw new ArgumentException("The column value must be a valid non empty string containing letters.", argumentName);
+            }
+            if (!DataExtractor.ColumnRegex.IsMatch(column))
+            {
+                throw new ArgumentException("The column value must contain only letters.", argumentName);
+            }
+        }
+
         /// <summary>
         /// Maps a property from the type defined as the row model
         /// to the column identifier that has its value.
@@ -79,7 +92,7 @@ namespace EPPlus.DataExtractor
         {
             if (propertyExpression == null)
                 throw new ArgumentNullException(nameof(propertyExpression));
-            if(string.IsNullOrWhiteSpace(column))
+            if (string.IsNullOrWhiteSpace(column))
                 throw new ArgumentNullException(nameof(column));
             if (!DataExtractor.ColumnRegex.IsMatch(column))
                 throw new ArgumentException("The column value must contain only letters.", nameof(column));
@@ -112,6 +125,11 @@ namespace EPPlus.DataExtractor
         /// <returns>Returns an <see cref="IEnumerable{T}"/> with the data of the columns.</returns>
         public IEnumerable<TRow> GetData(int fromRow, Predicate<int> @while)
         {
+            if (@while is null)
+            {
+                throw new ArgumentNullException(nameof(@while));
+            }
+
             for (int row = fromRow; @while(row); row++)
             {
                 var dataInstance = new TRow();
@@ -140,6 +158,15 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, List<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
+            if (propertyCollection is null)
+            {
+                throw new ArgumentNullException(nameof(propertyCollection));
+            }
+
+            ValidateColumn(startColumn, nameof(startColumn));
+            ValidateColumn(endColumn, nameof(endColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, List<TCollectionItem>>();
             var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
@@ -152,6 +179,15 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, HashSet<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
+            if (propertyCollection is null)
+            {
+                throw new ArgumentNullException(nameof(propertyCollection));
+            }
+
+            ValidateColumn(startColumn, nameof(startColumn));
+            ValidateColumn(endColumn, nameof(endColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, HashSet<TCollectionItem>>();
             var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
@@ -164,6 +200,16 @@ namespace EPPlus.DataExtractor
             Expression<Func<TRow, Collection<TCollectionItem>>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
+            if (propertyCollection is null)
+            {
+                throw new ArgumentNullException(nameof(propertyCollection));
+            }
+
+            ValidateColumn(startColumn, nameof(startColumn));
+            ValidateColumn(endColumn, nameof(endColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, Collection<TCollectionItem>>();
+
             var collectionConfiguration = new SimpleNewableCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
@@ -174,8 +220,22 @@ namespace EPPlus.DataExtractor
 
         public ICollectionPropertyConfiguration<TRow> WithCollectionProperty<TCollectionItem>(
             Func<TRow, ICollection<TCollectionItem>> propertyCollection,
+            string startColumn, string endColumn)
+            where TCollectionItem : class
+            => this.WithInitializedCollectionProperty(propertyCollection, startColumn, endColumn);
+
+        public ICollectionPropertyConfiguration<TRow> WithInitializedCollectionProperty<TCollectionItem>(
+            Func<TRow, ICollection<TCollectionItem>> propertyCollection,
             string startColumn, string endColumn) where TCollectionItem : class
         {
+            if (propertyCollection is null)
+            {
+                throw new ArgumentNullException(nameof(propertyCollection));
+            }
+
+            ValidateColumn(startColumn, nameof(startColumn));
+            ValidateColumn(endColumn, nameof(endColumn));
+
             var collectionConfiguration = new SimpleCollectionColumnDataExtractor<TRow, ICollection<TCollectionItem>, TCollectionItem>
                 (propertyCollection, startColumn, endColumn);
 
@@ -190,6 +250,25 @@ namespace EPPlus.DataExtractor
             Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class, new()
         {
+            if (propertyCollection is null)
+            {
+                throw new ArgumentNullException(nameof(propertyCollection));
+            }
+
+            if (headerProperty is null)
+            {
+                throw new ArgumentNullException(nameof(headerProperty));
+            }
+
+            if (rowProperty is null)
+            {
+                throw new ArgumentNullException(nameof(rowProperty));
+            }
+
+            ValidateColumn(startColumn, nameof(startColumn));
+            ValidateColumn(endColumn, nameof(endColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, List<TCollectionItem>>();
             var collectionConfiguration = new NewableCollectionColumnDataExtractor<TRow, List<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
                 (propertyCollection, headerProperty, headerRow, rowProperty, startColumn, endColumn);
 
@@ -204,6 +283,24 @@ namespace EPPlus.DataExtractor
             Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class, new()
         {
+            if (propertyCollection is null)
+            {
+                throw new ArgumentNullException(nameof(propertyCollection));
+            }
+            if (headerProperty is null)
+            {
+                throw new ArgumentNullException(nameof(headerProperty));
+            }
+
+            if (rowProperty is null)
+            {
+                throw new ArgumentNullException(nameof(rowProperty));
+            }
+
+            ValidateColumn(startColumn, nameof(startColumn));
+            ValidateColumn(endColumn, nameof(endColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, HashSet<TCollectionItem>>();
             var collectionConfiguration = new NewableCollectionColumnDataExtractor<TRow, HashSet<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
                 (propertyCollection, headerProperty, headerRow, rowProperty, startColumn, endColumn);
 
@@ -218,6 +315,25 @@ namespace EPPlus.DataExtractor
             Expression<Func<TCollectionItem, TRowValue>> rowProperty,
             string startColumn, string endColumn) where TCollectionItem : class, new()
         {
+            if (propertyCollection is null)
+            {
+                throw new ArgumentNullException(nameof(propertyCollection));
+            }
+            if (headerProperty is null)
+            {
+                throw new ArgumentNullException(nameof(headerProperty));
+            }
+
+            if (rowProperty is null)
+            {
+                throw new ArgumentNullException(nameof(rowProperty));
+            }
+
+            ValidateColumn(startColumn, nameof(startColumn));
+            ValidateColumn(endColumn, nameof(endColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, Collection<TCollectionItem>>();
+
             var collectionConfiguration = new NewableCollectionColumnDataExtractor<TRow, Collection<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
                 (propertyCollection, headerProperty, headerRow, rowProperty, startColumn, endColumn);
 
@@ -234,7 +350,35 @@ namespace EPPlus.DataExtractor
             string startColumn,
             string endColumn)
             where TCollectionItem : class, new()
+            => this.WithInitializedCollectionProperty(collectionGetter, headerProperty, headerRow, rowProperty, startColumn, endColumn);
+
+        public ICollectionPropertyConfiguration<TRow> WithInitializedCollectionProperty<TCollectionItem, THeaderValue, TRowValue>(
+            Func<TRow, ICollection<TCollectionItem>> collectionGetter,
+            Expression<Func<TCollectionItem, THeaderValue>> headerProperty,
+            int headerRow,
+            Expression<Func<TCollectionItem, TRowValue>> rowProperty,
+            string startColumn,
+            string endColumn)
+            where TCollectionItem : class, new()
         {
+            if (collectionGetter is null)
+            {
+                throw new ArgumentNullException(nameof(collectionGetter));
+            }
+
+            if (headerProperty is null)
+            {
+                throw new ArgumentNullException(nameof(headerProperty));
+            }
+
+            if (rowProperty is null)
+            {
+                throw new ArgumentNullException(nameof(rowProperty));
+            }
+
+            ValidateColumn(startColumn, nameof(startColumn));
+            ValidateColumn(endColumn, nameof(endColumn));
+
             var collectionConfiguration = new CollectionColumnDataExtractor<TRow, ICollection<TCollectionItem>, TCollectionItem, THeaderValue, TRowValue>
                 (collectionGetter, headerProperty, headerRow, rowProperty, startColumn, endColumn);
 
@@ -269,8 +413,14 @@ namespace EPPlus.DataExtractor
         {
             if (propertyCollection == null)
                 throw new ArgumentNullException(nameof(propertyCollection));
-            if (configurePropertiesAction == null)
-                throw new ArgumentNullException(nameof(configurePropertiesAction));
+            if (startingColumn is null)
+            {
+                throw new ArgumentNullException(nameof(startingColumn));
+            }
+
+            ValidateColumn(startingColumn, nameof(startingColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, List<TCollectionItem>>();
 
             var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
             configurePropertiesAction(columnToCollectionConfiguration);
@@ -310,6 +460,10 @@ namespace EPPlus.DataExtractor
                 throw new ArgumentNullException(nameof(propertyCollection));
             if (configurePropertiesAction == null)
                 throw new ArgumentNullException(nameof(configurePropertiesAction));
+            
+            ValidateColumn(startingColumn, nameof(startingColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, HashSet<TCollectionItem>>();
 
             var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
             configurePropertiesAction(columnToCollectionConfiguration);
@@ -350,6 +504,10 @@ namespace EPPlus.DataExtractor
             if (configurePropertiesAction == null)
                 throw new ArgumentNullException(nameof(configurePropertiesAction));
 
+            ValidateColumn(startingColumn, nameof(startingColumn));
+
+            propertyCollection.ValidatePropertyExpressionType<TRow, TCollectionItem, Collection<TCollectionItem>>();
+
             var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
             configurePropertiesAction(columnToCollectionConfiguration);
 
@@ -366,11 +524,21 @@ namespace EPPlus.DataExtractor
             string startingColumn,
             Action<IColumnToCollectionConfiguration<TCollectionItem>> configurePropertiesAction)
             where TCollectionItem : class, new()
+            => this.WithInitializedCollectionProperty(collectionGetter, headerRow, startingColumn, configurePropertiesAction);
+
+        public ICollectionPropertyConfigurationWithoutColumnsToCollection<TRow> WithInitializedCollectionProperty<TCollectionItem>(
+            Func<TRow, ICollection<TCollectionItem>> collectionGetter,
+            int headerRow,
+            string startingColumn,
+            Action<IColumnToCollectionConfiguration<TCollectionItem>> configurePropertiesAction)
+            where TCollectionItem : class, new()
         {
             if (collectionGetter == null)
                 throw new ArgumentNullException(nameof(collectionGetter));
             if (configurePropertiesAction == null)
                 throw new ArgumentNullException(nameof(configurePropertiesAction));
+
+            ValidateColumn(startingColumn, nameof(startingColumn));
 
             var columnToCollectionConfiguration = new ColumnToCollectionConfiguration<TCollectionItem>();
             configurePropertiesAction(columnToCollectionConfiguration);

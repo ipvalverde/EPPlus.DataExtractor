@@ -3,28 +3,27 @@ Import-Module "$PSScriptRoot\GitReleaseInfo.psm1" -Verbose
 function Invoke-CommandWithLog {
     [CmdletBinding()]
     param([string] $Command, [string] $CommandName)
-    Write-Output "`n-----------------------------------------"
-    Write-Output "Starting $CommandName process"
-    Write-Output "`n-----------------------------------------"
-    Write-Verbose "Command to be executed: '$Command'"
+    Write-Host "`n-----------------------------------------"
+    Write-Host "Starting $CommandName process"
+    Write-Host "`n-----------------------------------------"
     Invoke-Expression $Command
-    Write-Output "`n-----------------------------------------"
-    Write-Output "$CommandName finished"
-    Write-Output "`n-----------------------------------------"
+    Write-Host "`n-----------------------------------------"
+    Write-Host "$CommandName finished"
+    Write-Host "`n-----------------------------------------"
 }
 
 function Invoke-Build {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [object] $GitReleaseInfo,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string] $SolutionPath
     )
 
     if ($GitReleaseInfo.HasReleaseInfo()) {
-        $packageVersion = $GitReleaseInfo.GetPackageVersion()
+        $packageVersion = $GitReleaseInfo.GetVersion()
         $packageVersionCommandArgument = " -p:Version=$packageVersion"
     }
     else {
@@ -37,20 +36,54 @@ function Invoke-Build {
 function Invoke-Tests {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string] $SolutionPath
     )
 
     Invoke-CommandWithLog -Command "dotnet test $SolutionPath -c Release --no-build" -CommandName "test"
 }
 
-Export-ModuleMember -Function Invoke-Build, Invoke-Tests
+function Publish-Package {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [object] $GitReleaseInfo,
 
+        [Parameter(Mandatory = $true)]
+        [string] $ProjectPath,
 
-# if (-not [string]::IsNullOrWhiteSpace($packageVersionCommandArgument)) {
-#     Invoke-CommandWithLog -Command "dotnet pack $mainProjectPath --no-build -c Release --include-symbols -o artifacts -p:PackageReleaseNotes=`"$commitMessage`"$packageVersionCommandArgument" -CommandName "pack"
+        [Parameter(Mandatory = $true)]
+        [string] $NugetSourceUrl,
 
-#     $nugetPackageName = "$projectName.$packageVersion"
-#     Invoke-CommandWithLog -Command "dotnet nuget push $mainProjectDirectory/artifacts/$nugetPackageName.nupkg -s $nugetSourceUrl -k $env:MYGET_KEY" -CommandName "publish"
-#     Invoke-CommandWithLog -Command "dotnet nuget push $mainProjectDirectory/artifacts/$nugetPackageName.symbols.nupkg -s $nugetSourceUrl -k $env:MYGET_KEY" -CommandName "publish symbols"
-# }
+        [Parameter(Mandatory = $true)]
+        [string] $ApiKey,
+
+        [Parameter()]
+        [string] $ProjectName = $null
+    )
+
+    if ($GitReleaseInfo.HasReleaseInfo()) {
+
+        $currentPath = Get-Location
+        $version = $GitReleaseInfo.GetVersion()
+        $commitMessage = $GitReleaseInfo.GetCommitMessage()
+        Invoke-CommandWithLog -Command "dotnet pack $ProjectPath --no-build -c Release --include-symbols -o artifacts -p:PackageReleaseNotes=`"$commitMessage`" -p:PackageVersion=$version" -CommandName "pack"
+
+        if (-not $ProjectName) {
+            $csProj = Get-Item $ProjectPath
+            if (-not $csProj) {
+                throw "No file found for the given ProjectPath: '$ProjectPath'"
+            }
+            $ProjectName = $csProj.BaseName
+        }
+
+        $nugetPackageName = "$ProjectName.$version"
+        Invoke-CommandWithLog -Command "dotnet nuget push $currentPath/artifacts/$nugetPackageName.nupkg -s $NugetSourceUrl -k $ApiKey" -CommandName "publish"
+        Invoke-CommandWithLog -Command "dotnet nuget push $currentPath/artifacts/$nugetPackageName.symbols.nupkg -s $NugetSourceUrl -k $ApiKey" -CommandName "publish symbols"
+    }
+    else {
+        Write-Host "Publishing step skipped. No release info provided" -ForegroundColor Yellow
+    }
+}
+
+Export-ModuleMember -Function Invoke-Build, Invoke-Tests, Publish-Package

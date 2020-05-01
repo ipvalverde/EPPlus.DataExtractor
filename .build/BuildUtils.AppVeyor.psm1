@@ -5,13 +5,13 @@ function Read-GitReleaseInfoFromAppVeyor {
     $hasRepoTag = $env:APPVEYOR_REPO_TAG -eq "true"
     if ($hasRepoTag) {
 
-        Write-Output "`nGit version tag detected: '$env:APPVEYOR_REPO_TAG_NAME'`n"
+        Write-Host "`nGit version tag detected: '$env:APPVEYOR_REPO_TAG_NAME'`n" -ForegroundColor Yellow
     
         if ($env:APPVEYOR_REPO_TAG_NAME.StartsWith("v")) {
-            $packageVersion = $env:APPVEYOR_REPO_TAG_NAME.Substring(1)
+            $version = $env:APPVEYOR_REPO_TAG_NAME.Substring(1)
         }
         else {
-            $packageVersion = $env:APPVEYOR_REPO_TAG_NAME
+            $version = $env:APPVEYOR_REPO_TAG_NAME
         }
     
         $commitMessage = $env:APPVEYOR_REPO_COMMIT_MESSAGE
@@ -22,7 +22,7 @@ function Read-GitReleaseInfoFromAppVeyor {
         Write-Verbose "`n`$env:APPVEYOR_REPO_COMMIT_MESSAGE ==> '$env:APPVEYOR_REPO_COMMIT_MESSAGE'"
         Write-Verbose "`n`$env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED ==> '$env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED'"
 
-        $gitReleaseInfo =  New-GitReleaseInfo -PackageVersion $packageVersion -CommitMessage $commitMessage
+        $gitReleaseInfo = New-GitReleaseInfo -Version $version -CommitMessage $commitMessage
     }
     else {
         $gitReleaseInfo = New-EmptyGitReleaseInfo

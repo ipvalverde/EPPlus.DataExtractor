@@ -1,5 +1,5 @@
 class GitReleaseInfo {
-    hidden [string] $PackageVersion
+    hidden [string] $Version
     hidden [string] $CommitMessage
     hidden [bool] $HiddenHasReleaseInfo
 
@@ -7,22 +7,22 @@ class GitReleaseInfo {
         return $this.HiddenHasReleaseInfo
     }
     
-    [string] GetPackageVersion() {
-        return $this.PackageVersion
+    [string] GetVersion() {
+        return $this.Version
     }
 
     [string] GetCommitMessage() {
         return $this.CommitMessage
     }
 
-    GitReleaseInfo([string] $packageVersion, [string] $commitMessage) {
-        if (-not $packageVersion) {
-            throw "Package version (`$packageVersion) is required for GitReleaseInfo object"
+    GitReleaseInfo([string] $Version, [string] $commitMessage) {
+        if (-not $Version) {
+            throw "Version (`$Version) is required for GitReleaseInfo object"
         }
         if (-not $commitMessage) {
             throw "Commit message (`$commitMessage) is required for GitReleaseInfo object"
         }
-        $this.PackageVersion = $packageVersion
+        $this.Version = $Version
         $this.CommitMessage = $commitMessage
         $this.HiddenHasReleaseInfo = $true;
     }
@@ -36,12 +36,12 @@ function New-GitReleaseInfo() {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [string] $PackageVersion,
+        [string] $Version,
 
         [Parameter(Mandatory=$true)]
         [string] $CommitMessage
     )
-    [GitReleaseInfo]::New($PackageVersion, $CommitMessage)
+    [GitReleaseInfo]::New($Version, $CommitMessage)
 }
 
 function New-EmptyGitReleaseInfo() {

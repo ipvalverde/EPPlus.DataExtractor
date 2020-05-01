@@ -13,6 +13,13 @@
     <DocumentationFile>bin\Debug\EPPlus.DataExtractor.xml</DocumentationFile>
     <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
+
+  <PropertyGroup>
+      <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
   
   <PropertyGroup Label="MainGroup">
     <PackageId>EPPlus.DataExtractor</PackageId>
@@ -21,7 +28,6 @@
     <Authors>Israel Valverde</Authors>
     <Description>EPPlus extension, targeting .netstandard2.0, that make easier to extract POCO from excel tables.</Description>
     <PackageProjectUrl>https://github.com/ipvalverde/EPPlus.DataExtractor</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/ipvalverde/EPPlus.DataExtractor/blob/master/LICENSE</PackageLicenseUrl>
     <Copyright>Copyright © Israel Valverde</Copyright>
     <PackageTags>EPPlus Excel Spreadsheet sheets extract POCO</PackageTags>
     <Version>2.0.0-alpha1</Version>

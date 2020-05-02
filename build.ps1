@@ -3,7 +3,7 @@ Import-Module ".\.build\BuildUtils.AppVeyor.psm1"
 
 $projectName = "EPPlus.DataExtractor"
 $mainProjectPath = "src/EPPlus.DataExtractor/$projectName.csproj"
-$nugetSourceUrl = "https://www.myget.org/F/pipelinenet/api/v2/package"
+$nugetSourceUrl = "https://www.myget.org/F/epplus-data-extractor/api/v2/package"
 $solutionPath = ".\src\EPPlus.DataExtractor.sln"
 
 $gitReleaseInfo = Read-GitReleaseInfoFromAppVeyor

@@ -15,15 +15,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-      <PackageLicenseFile>LICENSE</PackageLicenseFile>
+      <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE.txt" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
   
   <PropertyGroup Label="MainGroup">
     <PackageId>EPPlus.DataExtractor</PackageId>
-    <PackageVersion>2.0.1</PackageVersion>
     <PackageTitle>EPPlus.DataExtractor</PackageTitle>
     <Authors>Israel Valverde</Authors>
     <Description>EPPlus extension, targeting .netstandard2.0, that make easier to extract POCO from excel tables.</Description>

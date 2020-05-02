@@ -1,33 +1,18 @@
-version: '{build}'
+version: "{build}"
 
 # Image's machine
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 pull_requests:
   do_not_increment_build_number: true
 
+# Tests will be managed by the build script
+test: off
+
 # Run the powershell script that will execute the cake build. (./build.cake)
 build_script:
-- ps: .\build.ps1
+  - ps: .\build.ps1
 
-# Tests will be managed by te CAKE.build script (./build.cake)
-test: off  
-
-# Make sure that pull requests will not push a nuget artifact
-nuget:
-  disable_publish_on_pr: true
-
-# Indicate the nugest artifact file(s)
-artifacts:  
-- path: .\artifacts\**\*.nupkg
-  name: NuGet
-
-# Deployment to MyGet, it should be pushed there only on tagged versions
-deploy:
-- provider: NuGet
-  server: https://www.myget.org/F/epplus-data-extractor/api/v2
-  api_key:
+environment:
+  myget_key:
     secure: ePaWJdJRreMdUF7tkjCxouno7mrN3nO4x9Peu5fo1nfRwcVNG8p36WEkKkgsGt6v
-  skip_symbols: true
-  on:
-    appveyor_repo_tag: true

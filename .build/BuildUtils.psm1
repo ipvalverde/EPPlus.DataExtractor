@@ -67,7 +67,7 @@ function Publish-Package {
         $currentPath = Get-Location
         $version = $GitReleaseInfo.GetVersion()
         $commitMessage = $GitReleaseInfo.GetCommitMessage()
-        Invoke-CommandWithLog -Command "dotnet pack $ProjectPath --no-build -c Release --include-symbols -o artifacts -p:PackageReleaseNotes=`"$commitMessage`" -p:PackageVersion=$version" -CommandName "pack"
+        Invoke-CommandWithLog -Command "dotnet pack $ProjectPath --no-build -c Release --include-symbols -o artifacts -p:PackageReleaseNotes=`"$commitMessage`" -p:Version=$version" -CommandName "pack"
 
         if (-not $ProjectName) {
             $csProj = Get-Item $ProjectPath
